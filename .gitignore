@@ -1,0 +1,9 @@
+node_modules/
+.expo/
+.idea/
+*.iml
+dist/
+*.log
+.env
+.env.*
+!.env.example

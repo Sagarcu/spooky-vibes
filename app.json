@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "Spooky Vibes",
+    "slug": "spooky-vibes",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "plugins": [
+      "expo-secure-store",
+      "expo-audio",
+      "expo-asset"
+    ],
+    "android": {
+      "package": "com.spookyvibes.app"
+    },
+    "ios": {
+      "bundleIdentifier": "com.spookyvibes.app"
+    }
+  }
+}
