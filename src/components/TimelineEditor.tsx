@@ -5,7 +5,7 @@ import { Appbar, Banner, Chip, Dialog, FAB, Icon, IconButton, List, Portal, Prog
 import { ColorWheel } from './ColorWheel';
 import { Action, Caption, EmptyState, Field, Panel, Sheet, ui } from './ui';
 import type { HueLight, HueLightGroup, TimelineAudioClip, TimelineEvent, TimelineSequence } from '../types/hue';
-import { builtInSequences, candlelight, validateTimeline, type SequenceRunner } from '../services/sequences';
+import { validateTimeline, type SequenceRunner } from '../services/sequences';
 import { createAudioPreviewRunner, createSampleClip, deleteUnusedAudio, importAudioClip, type SampleSound } from '../services/timeline-audio';
 import { moveTimelineAction, snappedTimelineTime } from '../services/timeline-drag';
 import { colors as colorPresets, whites } from '../services/light-presets';
@@ -42,7 +42,7 @@ type Props = {
   playbackRunning: boolean;
   ambianceSequenceIds: string[];
   onLeavePreview: () => Promise<void>;
-  onSelectBuiltIn: (id: string) => void;
+  onOpenAmbiance: () => void;
   onCreateGroup: () => void;
   onEditingChange: (active: boolean) => void;
 };
@@ -88,7 +88,7 @@ function DraggableItem(props: DraggableProps) {
   </View>;
 }
 
-export function TimelineEditor({ groups, lights, timelines, onSave, onDelete, onPreview, onStopPreview, previewRunning, previewRestoring, playbackRunning, ambianceSequenceIds, onLeavePreview, onSelectBuiltIn, onCreateGroup, onEditingChange }: Props) {
+export function TimelineEditor({ groups, lights, timelines, onSave, onDelete, onPreview, onStopPreview, previewRunning, previewRestoring, playbackRunning, ambianceSequenceIds, onLeavePreview, onOpenAmbiance, onCreateGroup, onEditingChange }: Props) {
   const { width: windowWidth } = useWindowDimensions();
   const expanded = windowWidth >= 1150;
   const [draft, setDraft] = useState<TimelineSequence | null>(null);
@@ -351,9 +351,7 @@ export function TimelineEditor({ groups, lights, timelines, onSave, onDelete, on
     <Banner visible={!!error} icon="alert-circle-outline" actions={[{ label: 'Dismiss', onPress: () => setError(null) }]}><Text accessibilityRole="alert">{error}</Text></Banner>
     {importing && <ProgressBar indeterminate />}
     {!draft ? <ScrollView contentContainerStyle={styles.library}>
-      <Text variant="titleLarge" accessibilityRole="header">Built-in</Text>
-      {builtInSequences.map(item => <List.Item key={item.id} accessibilityRole="button" accessibilityLabel={`Choose ${item.name}`} disabled={playbackRunning} title={item.name} description={item.id === candlelight.id ? 'Warm flicker · continuous' : 'Random light bursts · continuous'} onPress={() => onSelectBuiltIn(item.id)}
-        left={() => <View style={[styles.art, item.id === candlelight.id && styles.warmArt]}><Icon source={item.id === candlelight.id ? 'candle' : 'weather-lightning'} size={28} color={item.id === candlelight.id ? palette.accent : palette.primary} /></View>} right={props => <List.Icon {...props} icon="chevron-right" />} />)}
+      <Panel tonal><Caption>Candlelight and Halloween storm are reusable modes in Ambiance.</Caption><Action mode="text" onPress={onOpenAmbiance}>Open Ambiance</Action></Panel>
       <Text variant="titleLarge" accessibilityRole="header">Your timelines</Text>
       {!timelines.length && <EmptyState icon="creation-outline" title="No custom sequences" description={groups.length ? undefined : 'Create a group first.'}
         action={groups.length ? 'New sequence' : 'Create a group'} onPress={groups.length ? () => { changeDraft(empty(groups[0]?.id ?? '')); setDuration('20'); } : onCreateGroup} />}

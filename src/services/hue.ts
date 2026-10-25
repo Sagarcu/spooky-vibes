@@ -1,5 +1,7 @@
 ﻿import type { HueCredentials, HueLight, LightState } from '../types/hue';
 
+import { hueStateBody } from './hue-state';
+
 type HueError = { error?: { description?: string } };
 type HueSuccess = { success?: { username?: string } };
 type HueLightResponse = {
@@ -142,27 +144,10 @@ export async function setLightState(
   lightId: string,
   state: LightState,
 ): Promise<void> {
-  const body: Record<string, number | boolean | [number, number]> = {};
-  if (state.on !== undefined) body.on = state.on;
-  if (state.brightness !== undefined) body.bri = Math.max(1, Math.min(254, Math.round(state.brightness * 2.54)));
-  if (state.brightnessRaw !== undefined) body.bri = Math.max(1, Math.min(254, Math.round(state.brightnessRaw)));
-  if (state.hue !== undefined) body.hue = Math.max(0, Math.min(65_535, Math.round(state.hue)));
-  if (state.saturation !== undefined) body.sat = Math.max(0, Math.min(254, Math.round(state.saturation)));
-  if (state.xy !== undefined) body.xy = state.xy;
-  if (state.colorTemperature !== undefined) {
-    body.ct = Math.max(153, Math.min(500, Math.round(1_000_000 / state.colorTemperature)));
-  }
-  if (state.colorTemperatureMired !== undefined) body.ct = Math.max(153, Math.min(500, Math.round(state.colorTemperatureMired)));
-  if (state.transitionTimeDeciseconds !== undefined) {
-    body.transitiontime = Math.max(0, Math.round(state.transitionTimeDeciseconds));
-  }
-
   const result = await request<Array<HueError>>(
     bridgeUrl(credentials.bridgeIp, `/api/${credentials.username}/lights/${lightId}/state`),
-    { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) },
+    { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(hueStateBody(state)) },
   );
   const error = getHueError(result);
   if (error) throw new Error(error);
 }
-
-

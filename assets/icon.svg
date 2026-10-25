@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <title>Spooky Vibes - Little light keeper</title>
+  <desc>A smiling lilac ghost holding a glowing amber light bulb against a midnight plum background.</desc>
+  <defs>
+    <radialGradient id="background" cx=".48" cy=".38" r=".76">
+      <stop stop-color="#332c3d"/>
+      <stop offset="1" stop-color="#121016"/>
+    </radialGradient>
+    <linearGradient id="ghost" x1="185" y1="132" x2="338" y2="383" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ece6f0"/>
+      <stop offset=".52" stop-color="#d0bcff"/>
+      <stop offset="1" stop-color="#b49ae9"/>
+    </linearGradient>
+    <radialGradient id="glow">
+      <stop stop-color="#ffcc80" stop-opacity=".42"/>
+      <stop offset="1" stop-color="#ffcc80" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="bulb" x1="240" y1="258" x2="282" y2="316" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff1d6"/>
+      <stop offset="1" stop-color="#ffcc80"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#background)" d="M0 0h512v512H0z"/>
+  <circle cx="256" cy="252" r="160" stroke="#d0bcff" stroke-opacity=".09" stroke-width="2"/>
+  <ellipse cx="258" cy="401" rx="84" ry="12" fill="#0b0910" fill-opacity=".38"/>
+  <path d="M153 271v-44c0-65 43-111 102-111 63 0 104 48 104 111v113c0 24-7 35-19 35-14 0-17-20-31-20s-18 27-35 27c-18 0-22-27-37-27-16 0-21 22-37 22-17 0-19-24-32-24-13 0-18 12-27 7-11-6 12-42 12-89Z" fill="url(#ghost)"/>
+  <path d="M177 190c13-30 37-47 66-49" stroke="#fff" stroke-opacity=".35" stroke-width="10" stroke-linecap="round"/>
+  <ellipse cx="210" cy="225" rx="11" ry="16" fill="#26212d"/>
+  <ellipse cx="297" cy="225" rx="11" ry="16" fill="#26212d"/>
+  <circle cx="213" cy="220" r="3" fill="#ece6f0"/>
+  <circle cx="300" cy="220" r="3" fill="#ece6f0"/>
+  <ellipse cx="190" cy="249" rx="16" ry="9" fill="#ffcc80" fill-opacity=".55"/>
+  <ellipse cx="317" cy="249" rx="16" ry="9" fill="#ffcc80" fill-opacity=".55"/>
+  <path d="M244 246q10 13 20 0" stroke="#381e72" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="257" cy="292" r="91" fill="url(#glow)"/>
+  <path d="M231 281a27 27 0 1 1 45 20c-5 5-7 9-7 16h-24c0-7-2-11-7-16-5-5-7-12-7-20Z" fill="url(#bulb)"/>
+  <path d="m248 284 9 9 9-9m-9 9v23" stroke="#b87e37" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M246 319h22v10a11 11 0 0 1-22 0v-10Z" fill="#938a9f"/>
+  <path d="M248 322h18m-17 7h16" stroke="#ece6f0" stroke-width="3" stroke-linecap="round"/>
+  <path d="M203 291c6 14 17 24 32 25m77-25c-6 14-17 24-32 25" stroke="#a88bdc" stroke-width="22" stroke-linecap="round"/>
+  <path d="M203 287c6 14 17 24 32 25m77-25c-6 14-17 24-32 25" stroke="#e0cef9" stroke-width="19" stroke-linecap="round"/>
+  <path d="M375 153v28m-14-14h28" stroke="#ffcc80" stroke-width="6" stroke-linecap="round"/>
+  <path d="M132 204v16m-8-8h16" stroke="#d0bcff" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="337" cy="110" r="4" fill="#d0bcff" fill-opacity=".65"/>
+  <circle cx="386" cy="292" r="5" fill="#ffcc80" fill-opacity=".65"/>
+</svg>

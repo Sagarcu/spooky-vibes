@@ -34,13 +34,14 @@ type Props = {
   onChange: (hue: number, saturation: number) => void;
   onChangeComplete?: (hue: number, saturation: number) => void;
   onHexChange?: (hue: number, saturation: number, brightness: number) => void;
+  allowBlack?: boolean;
   disabled?: boolean;
   maxSize?: number;
   onGestureStart?: () => void;
   onGestureEnd?: () => void;
 };
 
-export function ColorWheel({ hue, saturation, brightness = 100, onChange, onChangeComplete, onHexChange, disabled = false, maxSize = SIZE, onGestureStart, onGestureEnd }: Props) {
+export function ColorWheel({ hue, saturation, brightness = 100, onChange, onChangeComplete, onHexChange, allowBlack = true, disabled = false, maxSize = SIZE, onGestureStart, onGestureEnd }: Props) {
   const { width } = useWindowDimensions();
   const [editingHex, setEditingHex] = useState(false);
   const [hexInput, setHexInput] = useState('');
@@ -50,6 +51,7 @@ export function ColorWheel({ hue, saturation, brightness = 100, onChange, onChan
     if (disabled || !onHexChange) return;
     const color = parseHexColor(hexInput);
     if (!color) { setHexError('Enter 3 or 6 hexadecimal digits, such as #FF8800.'); return; }
+    if (!allowBlack && color.brightness === 0) { setHexError('Choose a non-black color. Brightness is controlled by the effect limits.'); return; }
     setEditingHex(false);
     onHexChange(color.hue, color.saturation, color.brightness);
   };

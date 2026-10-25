@@ -3,13 +3,18 @@ import { clearCredentials, loadCredentials, saveCredentials } from './storage/cr
 import { clearGroups, loadGroups, saveGroups } from './storage/groups';
 import { clearTimelines, loadTimelines, saveTimelines } from './storage/timelines';
 import { clearRooms, loadRooms, saveRooms } from './storage/rooms';
-import { clearPlaybackTarget, loadPlaybackTarget, savePlaybackTarget } from './storage/playback-target';
-import { resolvePlaybackTarget, type PlaybackTarget } from './services/playback-target';
+import { clearPlaybackTarget } from './storage/playback-target';
+import { clearAmbiances, loadAmbiances, saveAmbiances } from './storage/ambiance';
+import { validateSavedAmbiance, type AmbianceEffectSettings, type SavedAmbiance } from './services/ambiance-settings';
+import { resolvePlaybackTarget } from './services/playback-target';
 import { deleteRoom, emptyRoomLayout, moveRoomLight, reorderRoom, saveRoom, type RoomLayout } from './services/rooms';
 import { saveLightGroup, groupsForAvailableLights } from './services/groups';
 import { discoverBridge, getLights, pairBridge, renameLight, setLightState } from './services/hue';
-import { builtInSequences, candlelight, createSequenceRunner, halloweenStorm, validateTimeline, type SequenceRunner } from './services/sequences';
-import { createAmbiancePlayback, type AmbianceMode } from './services/ambiance';
+import { ambianceLightState, configuredAmbianceSequence, createSequenceRunner, validateTimeline, type SequenceRunner } from './services/sequences';
+import type { AmbianceMode } from './services/ambiance';
+import { createPlatformAmbiancePlayback } from './services/ambiance-platform';
+import { backgroundAmbianceRequest } from './services/background-ambiance';
+import { supportedLightState } from './services/hue-state';
 import { createAudioTimelineRunner, deleteUnusedAudio } from './services/timeline-audio';
 import { createRestoringTimelinePreview, shouldRestoreHomePlayback } from './services/timeline-preview';
 import type { HueCredentials, HueLight, HueLightGroup, LightState, LightingSequence, TimelineSequence } from './types/hue';
@@ -27,9 +32,12 @@ export function useLightingController() {
   const roomsReady = useRef(false);
   const roomWritePending = useRef(false);
   const [timelines, setTimelines] = useState<TimelineSequence[]>([]);
-  const [playbackTarget, setPlaybackTarget] = useState<PlaybackTarget | null>(null);
-  const [selectedSequenceId, setSelectedSequenceId] = useState(candlelight.id);
+  const [selectedSequenceId, setSelectedSequenceId] = useState('');
   const [ambianceModes, setAmbianceModes] = useState<AmbianceMode[]>([]);
+  const [savedAmbiances, setSavedAmbiances] = useState<SavedAmbiance[]>([]);
+  const savedAmbiancesRef = useRef<SavedAmbiance[]>([]);
+  const ambiancesReady = useRef(false);
+  const ambianceOperation = useRef(false);
   const [busy, setBusy] = useState(false);
   const [restoring, setRestoring] = useState(true);
   const [connected, setConnected] = useState(false);
@@ -50,7 +58,7 @@ export function useLightingController() {
     setError(text);
     setStatus(text);
   };
-  const [ambiance] = useState(() => createAmbiancePlayback(setAmbianceModes,
+  const [ambiance] = useState(() => createPlatformAmbiancePlayback(setAmbianceModes,
     (name, problem) => reportError(new Error(`${name} ambiance stopped: ${message(problem)}`))));
   const refresh = async (active = credentials) => {
     if (!active) throw new Error('Connect your Hue Bridge first.');
@@ -65,6 +73,7 @@ export function useLightingController() {
     }
   };
   useEffect(() => {
+    ambiance.attach();
     void (async () => {
       try {
         const [saved, savedGroups, savedTimelines] = await Promise.all([loadCredentials(), loadGroups(), loadTimelines()]);
@@ -74,8 +83,13 @@ export function useLightingController() {
         } catch (problem) { reportError(problem); }
         setGroups(savedGroups);
         setTimelines(savedTimelines);
-        try { setPlaybackTarget(await loadPlaybackTarget()); }
-        catch (problem) { reportError(problem); }
+        setSelectedSequenceId(savedTimelines[0]?.id ?? '');
+        try {
+          const configurations = await loadAmbiances();
+          savedAmbiancesRef.current = configurations;
+          setSavedAmbiances(configurations);
+          ambiancesReady.current = true;
+        } catch (problem) { reportError(problem); }
         if (!saved) { setStatus('No bridge connected.'); return; }
         setCredentials(saved);
         setBridgeIp(saved.bridgeIp);
@@ -118,7 +132,7 @@ export function useLightingController() {
     if (runner.current) { const active = runner.current; active.cancel(); await active.done; }
     runner.current = null;
     setRunning(false);
-    await Promise.all([clearCredentials(), clearGroups(), clearTimelines(), clearRooms(), clearPlaybackTarget()]);
+    await Promise.all([clearCredentials(), clearGroups(), clearTimelines(), clearRooms(), clearPlaybackTarget(), clearAmbiances()]);
     deleteUnusedAudio(timelines, []);
     setCredentials(null);
     setConnected(false);
@@ -127,10 +141,12 @@ export function useLightingController() {
     setRoomLayout(emptyRoomLayout());
     roomsReady.current = true;
     setTimelines([]);
-    setSelectedSequenceId(candlelight.id);
+    setSelectedSequenceId('');
+    savedAmbiancesRef.current = [];
+    setSavedAmbiances([]);
+    ambiancesReady.current = true;
     setSelectedLightId(null);
-    setPlaybackTarget(null);
-    setStatus('Saved connection and device-local rooms, groups and timelines removed.');
+    setStatus('Saved connection and device-local rooms, groups, timelines and ambiance modes removed.');
   });
   const update = (id: string, state: LightState) => run(async () => {
     if (!credentials) throw new Error('Connect your Hue Bridge first.');
@@ -157,11 +173,6 @@ export function useLightingController() {
     setGroups(next);
     setStatus('Group deleted. Your Hue lights have not been deleted.');
   });
-  const selectPlaybackTarget = (target: PlaybackTarget) => run(async () => {
-    await savePlaybackTarget(target);
-    setPlaybackTarget(target);
-    setStatus('Home playback target saved.');
-  });
   const changeRooms = async (change: (layout: RoomLayout) => RoomLayout) => {
     if (roomWritePending.current) {
       reportError(new Error('A room change is still saving. Try again in a moment.'));
@@ -185,7 +196,7 @@ export function useLightingController() {
   const moveLightToRoom = (lightId: string, roomId: string | null, beforeId: string | null = null) =>
     changeRooms(layout => moveRoomLight(layout, lights.map(light => light.id), lightId, roomId, beforeId));
   const saveTimeline = async (sequence: TimelineSequence) => {
-    if (ambiance.usesSequence(sequence.id)) throw new Error('Stop this sequence in Ambiance before saving changes.');
+    if (await ambiance.usesSequence(sequence.id)) throw new Error('Stop this sequence in Ambiance before saving changes.');
     const next = [...timelines.filter(item => item.id !== sequence.id), sequence];
     await saveTimelines(next);
     deleteUnusedAudio(timelines, next);
@@ -194,60 +205,101 @@ export function useLightingController() {
     setStatus('Sequence saved.');
   };
   const deleteTimeline = async (id: string) => {
-    if (ambiance.usesSequence(id)) throw new Error('Stop this sequence in Ambiance before deleting it.');
+    if (await ambiance.usesSequence(id)) throw new Error('Stop this sequence in Ambiance before deleting it.');
     const next = timelines.filter(item => item.id !== id);
     await saveTimelines(next);
     deleteUnusedAudio(timelines, next);
     setTimelines(next);
-    if (selectedSequenceId === id) setSelectedSequenceId(candlelight.id);
+    if (selectedSequenceId === id) setSelectedSequenceId(next[0]?.id ?? '');
     setStatus('Sequence deleted.');
   };
   const availableGroups = groupsForAvailableLights(groups, lights.map(light => light.id));
-  const homeTarget = resolvePlaybackTarget(playbackTarget, groups, lights);
   const selectedTimeline = timelines.find(item => item.id === selectedSequenceId);
-  const selectedSequence = builtInSequences.find(sequence => sequence.id === selectedSequenceId) ?? candlelight;
-  const sequenceName = selectedTimeline?.name ?? selectedSequence.name;
+  const sequenceName = selectedTimeline?.name ?? 'Choose a custom timeline';
   const timelineGroup = selectedTimeline && availableGroups.find(group => group.id === selectedTimeline.groupId);
   const sendState = (active: HueCredentials, id: string, state: LightState) => {
     const device = lights.find(light => light.id === id);
-    const supportedState = device?.kind === 'onoff-plug' ? { on: state.on }
-      : device?.kind === 'dimmable-plug' ? { on: state.on, brightness: state.brightness, brightnessRaw: state.brightnessRaw, transitionTimeDeciseconds: state.transitionTimeDeciseconds }
-      : { ...state, hue: device?.colorCapable ? state.hue : undefined,
-        saturation: device?.colorCapable ? state.saturation : undefined,
-        xy: device?.colorCapable ? state.xy : undefined,
-        colorTemperature: device?.colorTemperatureCapable ? state.colorTemperature : undefined,
-        colorTemperatureMired: device?.colorTemperatureCapable ? state.colorTemperatureMired : undefined };
-    return setLightState(active, id, supportedState);
+    return setLightState(active, id, supportedLightState(device, state));
   };
-  const playPreset = (sequence: LightingSequence, ids: string[], apply: (id: string, state: LightState) => Promise<void>) =>
-    createSequenceRunner({ ...sequence, lightIds: ids }, async (lightIds, state) => {
-      const results = await Promise.allSettled(lightIds.map(id => apply(id,
-        sequence.id === halloweenStorm.id && lights.find(light => light.id === id)?.kind === 'onoff-plug' && state.brightness === 1
-          ? { on: false } : state)));
+  const playPreset = (sequence: LightingSequence, ids: string[], apply: (id: string, state: LightState) => Promise<void>, settings?: AmbianceEffectSettings) =>
+    createSequenceRunner({ ...sequence, lightIds: ids }, async (lightIds, _state, step) => {
+      const results = await Promise.allSettled(lightIds.map(id => {
+        const light = lights.find(item => item.id === id);
+        if (!light) return Promise.reject(new Error('A selected lamp is unavailable.'));
+        return apply(id, ambianceLightState(sequence.id, light, step, settings));
+      }));
       const failures = results.filter(result => result.status === 'rejected');
       if (failures.length) throw new Error(`Could not update ${failures.length} lamp(s): ${message(failures[0]!.reason)}`);
     });
-  const startAmbiance = (sequenceId: string, target: PlaybackTarget | null) => run(async () => {
+  const ambianceWork = async (work: () => Promise<void>) => {
+    if (ambianceOperation.current) { reportError(new Error('An ambiance operation is still in progress. Try again in a moment.')); return false; }
+    ambianceOperation.current = true;
+    try { return await run(work); }
+    finally { ambianceOperation.current = false; }
+  };
+  const startConfiguration = async (configuration: SavedAmbiance) => {
     if (!credentials || !connected) throw new Error('Connect your Hue Bridge first.');
+    if ((await ambiance.getModes()).some(mode => mode.configurationId === configuration.id)) throw new Error('This ambiance is already running or stopping.');
+    const { sequenceId, target, settings } = configuration;
     const timeline = timelines.find(item => item.id === sequenceId);
-    const preset = builtInSequences.find(item => item.id === sequenceId);
+    const preset = settings && configuredAmbianceSequence(sequenceId, settings);
     if (!timeline && !preset) throw new Error('Choose an available sequence.');
     const group = timeline && availableGroups.find(item => item.id === timeline.groupId);
     const resolved = resolvePlaybackTarget(target, groups, lights);
     const targets = timeline ? group?.lightIds ?? [] : resolved.lightIds;
     if (!targets.length) throw new Error(timeline ? 'This timeline needs its saved group and available lamps.' : 'Choose an available group or lamp.');
     if (timeline) validateTimeline(timeline, targets, lights);
-    const ids = preset?.id === candlelight.id ? targets.filter(id => lights.find(light => light.id === id)?.kind !== 'onoff-plug') : targets;
-    if (!ids.length) throw new Error('Candlelight needs a dimmable lamp; on/off smart switches cannot flicker.');
-    ambiance.start({
-      sequenceId, name: (timeline ?? preset)!.name,
+    const ids = targets;
+    await ambiance.start(backgroundAmbianceRequest({
+      sequenceId, name: configuration.name, configurationId: configuration.id,
       targetName: timeline ? group!.name : resolved.name, lightIds: ids,
-    }, apply => timeline ? createAudioTimelineRunner(timeline, apply) : playPreset(preset!, ids, apply),
+    }, credentials, lights, timeline, settings), apply => timeline ? createAudioTimelineRunner(timeline, apply) : playPreset(preset!, ids, apply, settings),
     (id, state) => sendState(credentials, id, state));
-    setStatus(`${(timeline ?? preset)!.name} ambiance started.`);
+    setStatus(`${configuration.name} ambiance started.`);
+  };
+  const startAmbiance = (id: string) => ambianceWork(async () => {
+    const configuration = savedAmbiancesRef.current.find(item => item.id === id);
+    if (!configuration) throw new Error('This saved ambiance is unavailable.');
+    await startConfiguration(configuration);
   });
-  const stopAmbiance = (id: string) => ambiance.stop(id);
-  const stopAllAmbiance = () => ambiance.stopAll();
+  const saveAmbiance = (draft: SavedAmbiance, startAfterSave = false) => ambianceWork(async () => {
+    if (!ambiancesReady.current) throw new Error('Saved ambiance modes could not be loaded. Restart the app before saving changes.');
+    const configuration = validateSavedAmbiance(draft);
+    if ((await ambiance.getModes()).some(mode => mode.configurationId === configuration.id)) throw new Error('Stop this ambiance before editing its settings.');
+    const next = savedAmbiancesRef.current.some(item => item.id === configuration.id)
+      ? savedAmbiancesRef.current.map(item => item.id === configuration.id ? configuration : item)
+      : [...savedAmbiancesRef.current, configuration];
+    await saveAmbiances(next);
+    savedAmbiancesRef.current = next;
+    setSavedAmbiances(next);
+    setStatus('Ambiance saved on this device.');
+    if (startAfterSave) {
+      try { await startConfiguration(configuration); }
+      catch (problem) { throw new Error(`Ambiance saved, but could not start: ${message(problem)}`); }
+    }
+  });
+  const stopAmbiance = (id: string) => ambianceWork(async () => {
+    await ambiance.stop(id);
+    setStatus('Ambiance stopped. Its saved setup is ready to restart.');
+  });
+  const removeAmbiance = (id: string) => ambianceWork(async () => {
+    if (!ambiancesReady.current) throw new Error('Saved ambiance modes could not be loaded. Restart the app before deleting.');
+    const modes = await ambiance.getModes();
+    await Promise.all(modes.filter(mode => mode.configurationId === id).map(mode => ambiance.stop(mode.id)));
+    const next = savedAmbiancesRef.current.filter(item => item.id !== id);
+    await saveAmbiances(next);
+    savedAmbiancesRef.current = next;
+    setSavedAmbiances(next);
+    setStatus('Saved ambiance deleted.');
+  });
+  const stopAllAmbiance = () => ambianceWork(async () => {
+    await ambiance.stopAll();
+    setStatus('All ambiance stopped. Saved setups are ready to restart.');
+  });
+  const stopAmbianceForEdit = (configurationId: string) => ambianceWork(async () => {
+    const mode = (await ambiance.getModes()).find(item => item.configurationId === configurationId);
+    if (mode) await ambiance.stop(mode.id);
+  });
   const previewTimeline = async (sequence: TimelineSequence) => {
     if (previewRunner.current || runner.current || busy) return;
     const group = availableGroups.find(item => item.id === sequence.groupId);
@@ -295,26 +347,25 @@ export function useLightingController() {
   const start = async () => {
     if (runner.current || previewRunner.current) return;
     setError(null);
-    if (selectedTimeline && (!timelineGroup || selectedTimeline.events.some(event => !timelineGroup.lightIds.includes(event.lightId)))) {
+    if (!selectedTimeline) {
+      reportError(new Error('Choose a saved custom timeline. Candlelight and Halloween storm are available in Ambiance.'));
+      return;
+    }
+    if (!timelineGroup || selectedTimeline.events.some(event => !timelineGroup.lightIds.includes(event.lightId))) {
       reportError(new Error('A timeline lamp is unavailable. Restore it or edit the sequence before running.'));
       return;
     }
-    const sequence = selectedSequence;
-    const targets = selectedTimeline ? (timelineGroup?.lightIds ?? []) : homeTarget.lightIds;
-    const ids = !selectedTimeline && sequence.id === candlelight.id ? targets.filter(id => lights.find(light => light.id === id)?.kind !== 'onoff-plug') : targets;
-    if (!credentials || !targets.length || !ids.length) {
-      reportError(new Error(selectedTimeline ? 'This timeline needs its group and at least one available lamp.' : !ids.length && targets.length ? 'Candlelight needs a dimmable lamp; on/off smart switches cannot flicker.' : 'Choose a lamp or group first.'));
+    if (!credentials || !timelineGroup.lightIds.length) {
+      reportError(new Error('This timeline needs its group and at least one available lamp.'));
       return;
     }
     stopRequested.current = false;
     const restoreHome = shouldRestoreHomePlayback(selectedTimeline);
     homeRestoreInFlight.current = restoreHome;
-    const active = ambiance.foreground(selectedTimeline ? selectedTimeline.events.map(event => event.lightId) : ids, () => selectedTimeline
-      ? restoreHome
+    const active = ambiance.foreground(selectedTimeline.events.map(event => event.lightId), () => restoreHome
         ? createRestoringTimelinePreview(selectedTimeline, () => getLights(credentials), (id, state) => sendState(credentials, id, state),
           (timeline, apply) => createAudioTimelineRunner(timeline, apply), () => { setHomeRestoring(true); setStatus('Restoring the lamps from before playback...'); })
-        : createAudioTimelineRunner(selectedTimeline, (id, state) => sendState(credentials, id, state))
-      : playPreset(sequence, ids, (id, state) => sendState(credentials, id, state)));
+        : createAudioTimelineRunner(selectedTimeline, (id, state) => sendState(credentials, id, state)));
     runner.current = active;
     setRunning(true);
     setStatus(`${sequenceName} is running...`);
@@ -342,14 +393,14 @@ export function useLightingController() {
     runner.current?.cancel();
     setStatus(homeRestoreInFlight.current ? 'Stopping sequence and restoring lamps...' : 'Sequence stopped.');
   };
-  const targetMissing = !credentials || (selectedTimeline
-    ? !timelineGroup || !(selectedTimeline.events.length || selectedTimeline.backgroundAudio || selectedTimeline.audioEffects?.length) || selectedTimeline.events.some(event => !timelineGroup.lightIds.includes(event.lightId))
-    : !homeTarget.lightIds.length);
+  const targetMissing = !credentials || !selectedTimeline || !timelineGroup ||
+    !(selectedTimeline.events.length || selectedTimeline.backgroundAudio || selectedTimeline.audioEffects?.length) ||
+    selectedTimeline.events.some(event => !timelineGroup.lightIds.includes(event.lightId));
 
   return {
     credentials, bridgeIp, setBridgeIp, lights, groups, roomLayout, timelines, selectedLightId, setSelectedLightId,
-    ambianceModes, startAmbiance, stopAmbiance, stopAllAmbiance,
-    playbackTarget, selectPlaybackTarget, homeTarget, selectedSequenceId, setSelectedSequenceId,
+    ambianceModes, savedAmbiances, saveAmbiance, removeAmbiance, startAmbiance, stopAmbiance, stopAllAmbiance, stopAmbianceForEdit,
+    selectedSequenceId, setSelectedSequenceId,
     selectedTimeline, timelineGroup, sequenceName, availableGroups, busy, restoring, connected, status, error,
     clearError: () => setError(null), running, homeRestoring, previewRunning, previewRestoring, targetMissing,
     discover, pair, reconnect, forget, update, saveLightName, saveGroup, removeGroup, saveTimeline,

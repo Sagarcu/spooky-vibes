@@ -1,21 +1,28 @@
 import type { HueLight, LightState, LightingSequence, SequenceStep, TimelineAudioClip, TimelineEvent, TimelineSequence } from '../types/hue';
+import { defaultAmbianceSettings, isAmbianceSettings, type AmbianceColor, type AmbianceEffectSettings } from './ambiance-settings';
+import { isWhiteOnlyLight, supportedLightState } from './hue-state';
 
 export type SequenceRunner = {
   done: Promise<void>;
   cancel: () => void;
 };
 
-type ApplyState = (lightIds: string[], state: LightState) => Promise<void>;
+type ApplyState = (lightIds: string[], state: LightState, step: SequenceStep) => Promise<void>;
 
-export function createCandlelightStep(previousStep?: SequenceStep, random = Math.random): SequenceStep {
-  const target = 8 + Math.floor(random() * 43);
-  const brightness = Math.max(8, Math.min(50, Math.round(target * 0.85 + (previousStep?.state.brightness ?? target) * 0.15)));
+function colorState(color: AmbianceColor): LightState {
+  return color.mode === 'keep' ? {} : color.mode === 'white' ? { colorTemperature: color.temperature } : { hue: color.hue, saturation: color.saturation };
+}
+
+export function createCandlelightStep(previousStep?: SequenceStep, random = Math.random, settings = defaultAmbianceSettings('candlelight')): SequenceStep {
+  const { minBrightness, maxBrightness } = settings;
+  const target = minBrightness + Math.floor(random() * (maxBrightness - minBrightness + 1));
+  const brightness = Math.max(minBrightness, Math.min(maxBrightness, Math.round(target * 0.85 + (previousStep?.state.brightness ?? target) * 0.15)));
   const durationMs = 600 + Math.floor(random() * 1401);
   const transitionTimeDeciseconds = 2 + Math.floor(random() * Math.min(7, Math.floor(durationMs / 100) - 1));
   return {
     id: 'flicker', label: 'Candle flicker',
     durationMs,
-    state: { on: true, brightness, colorTemperature: 2200, transitionTimeDeciseconds },
+    state: { on: true, brightness, ...colorState(settings.color), transitionTimeDeciseconds },
   };
 }
 
@@ -27,12 +34,12 @@ export const candlelight: LightingSequence = {
   nextStep: createCandlelightStep,
 };
 
-export function createHalloweenStormStep(previousStep?: SequenceStep, random = Math.random): SequenceStep {
+export function createHalloweenStormStep(previousStep?: SequenceStep, random = Math.random, settings = defaultAmbianceSettings('halloween-storm')): SequenceStep {
   if (previousStep?.id === 'storm-quiet') {
     return {
       id: 'storm-burst', label: 'Lightning',
       durationMs: 1000 + Math.floor(random() * 2001),
-      state: { on: true, brightness: 80 + Math.floor(random() * 21), colorTemperature: 6500, transitionTimeDeciseconds: 0 },
+      state: { on: true, brightness: settings.minBrightness + Math.floor(random() * (settings.maxBrightness - settings.minBrightness + 1)), ...colorState(settings.color), transitionTimeDeciseconds: 0 },
     };
   }
   const glow = random() >= 0.55;
@@ -40,7 +47,7 @@ export function createHalloweenStormStep(previousStep?: SequenceStep, random = M
     id: 'storm-quiet', label: glow ? 'Faint glow' : 'Darkness',
     durationMs: 4000 + Math.floor(random() * 14001),
     state: glow
-      ? { on: true, brightness: 1, colorTemperature: 2200, transitionTimeDeciseconds: 4 }
+      ? { on: true, brightness: 1, ...colorState(settings.glowColor), transitionTimeDeciseconds: 4 }
       : { on: false, transitionTimeDeciseconds: 4 },
   };
 }
@@ -54,6 +61,31 @@ export const halloweenStorm: LightingSequence = {
 };
 
 export const builtInSequences = [candlelight, halloweenStorm];
+
+export function configuredAmbianceSequence(sequenceId: string, settings: AmbianceEffectSettings): LightingSequence {
+  if (!isAmbianceSettings(settings)) throw new Error('Use valid ambiance brightness limits and colors.');
+  const sequence = builtInSequences.find(item => item.id === sequenceId);
+  if (!sequence) throw new Error('Choose an available ambiance effect.');
+  return {
+    ...sequence,
+    nextStep: previous => sequenceId === candlelight.id
+      ? createCandlelightStep(previous, Math.random, settings)
+      : createHalloweenStormStep(previous, Math.random, settings),
+  };
+}
+
+export function ambianceLightState(sequenceId: string, light: HueLight, step: SequenceStep, settings?: AmbianceEffectSettings): LightState {
+  if (light.kind === 'onoff-plug') return { on: sequenceId === candlelight.id || step.id === 'storm-burst' };
+  const state = { ...step.state };
+  if (!light.colorCapable) {
+    delete state.colorTemperature;
+    delete state.hue;
+    delete state.saturation;
+    const white = sequenceId === halloweenStorm.id && step.id === 'storm-quiet' ? settings?.glowWhiteColor : settings?.whiteColor;
+    if (state.on && isWhiteOnlyLight(light) && white?.mode === 'white') state.colorTemperature = white.temperature;
+  }
+  return supportedLightState(light, state);
+}
 
 export function createSequenceRunner(sequence: LightingSequence, applyState: ApplyState): SequenceRunner {
   let cancelled = false;
@@ -76,7 +108,7 @@ export function createSequenceRunner(sequence: LightingSequence, applyState: App
       const step = sequence.nextStep ? sequence.nextStep(previousStep) : sequence.steps[index];
       if (!step) break;
       const sentAt = Date.now();
-      await applyState(sequence.lightIds, step.state);
+      await applyState(sequence.lightIds, step.state, step);
       if (cancelled) return;
       previousStep = step;
       const elapsed = sequence.nextStep ? Date.now() - sentAt : 0;

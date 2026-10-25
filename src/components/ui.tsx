@@ -1,6 +1,6 @@
 import type { ComponentProps, ReactNode } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
-import { Button, Icon, IconButton, Surface, Text, TextInput, useTheme } from 'react-native-paper';
+import { Button, Icon, IconButton, Portal, Surface, Text, TextInput, useTheme } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { palette, radius, spacing } from '../theme';
 
@@ -31,11 +31,12 @@ export function EmptyState({ icon, title, description, action, onPress }: {
   </Panel>;
 }
 
-export function Sheet({ visible, title, onDismiss, children, scrollEnabled = true }: {
-  visible: boolean; title: string; onDismiss: () => void; children: ReactNode; scrollEnabled?: boolean;
+export function Sheet({ visible, title, onDismiss, children, scrollEnabled = true, footer }: {
+  visible: boolean; title: string; onDismiss: () => void; children: ReactNode; scrollEnabled?: boolean; footer?: ReactNode;
 }) {
   const { animation } = useTheme();
   return <Modal visible={visible} transparent animationType={animation.scale === 0 ? 'none' : 'slide'} onRequestClose={onDismiss}>
+    <Portal.Host>
     <SafeAreaView style={ui.scrim} edges={['top', 'bottom']}>
       <KeyboardAvoidingView style={ui.sheetPosition} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View style={ui.sheet} accessibilityViewIsModal>
@@ -47,9 +48,11 @@ export function Sheet({ visible, title, onDismiss, children, scrollEnabled = tru
           <ScrollView scrollEnabled={scrollEnabled} keyboardShouldPersistTaps="handled" contentContainerStyle={ui.sheetContent}>
             {children}
           </ScrollView>
+          {footer && <View style={ui.sheetFooter}>{footer}</View>}
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
+    </Portal.Host>
   </Modal>;
 }
 
@@ -72,4 +75,5 @@ export const ui = StyleSheet.create({
   sheet: { backgroundColor: palette.surface, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, paddingHorizontal: spacing.xl, paddingTop: spacing.md, maxHeight: '95%', width: '100%', maxWidth: 600 },
   handle: { width: 32, height: 4, borderRadius: 2, backgroundColor: palette.outline, alignSelf: 'center', marginBottom: spacing.sm },
   sheetContent: { gap: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.xxl },
+  sheetFooter: { paddingVertical: spacing.md, gap: spacing.sm, borderTopWidth: 1, borderTopColor: palette.high },
 });
