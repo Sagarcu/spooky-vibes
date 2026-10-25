@@ -6,6 +6,7 @@ type Play = (apply: ApplyState) => SequenceRunner;
 
 export type AmbianceMode = {
   id: string;
+  configurationId?: string;
   sequenceId: string;
   name: string;
   targetName: string;
@@ -63,11 +64,13 @@ export function createAmbiancePlayback(onChange: (modes: AmbianceMode[]) => void
   let nextId = 0;
   let disposed = false;
   const blocked = (id: string) => [...reservations.values()].some(ids => ids.has(id));
-  const publish = () => {
-    if (!disposed) onChange([...modes.values()].map(mode => ({
+  const snapshot = () => [...modes.values()].map(mode => ({
       id: mode.id, sequenceId: mode.sequenceId, name: mode.name, targetName: mode.targetName,
+      configurationId: mode.configurationId,
       lightIds: mode.lightIds, activeLightIds: mode.lightIds.filter(id => !blocked(id)), stopping: mode.stopping,
-    })));
+    }));
+  const publish = () => {
+    if (!disposed) onChange(snapshot());
   };
   const fail = (mode: Mode, error: unknown) => {
     if (mode.failed) return;
@@ -93,7 +96,7 @@ export function createAmbiancePlayback(onChange: (modes: AmbianceMode[]) => void
   const pendingFor = (ids: Set<string>) => [...modes.values()].flatMap(mode =>
     [...mode.pending].filter(([id]) => ids.has(id)).flatMap(([, pending]) => [...pending]));
 
-  const start = (description: Pick<AmbianceMode, 'sequenceId' | 'name' | 'targetName' | 'lightIds'>, play: Play, apply: ApplyState) => {
+  const start = (description: Pick<AmbianceMode, 'sequenceId' | 'name' | 'targetName' | 'lightIds' | 'configurationId'>, play: Play, apply: ApplyState) => {
     if (disposed) throw new Error('Ambiance playback is no longer available.');
     const id = `ambiance-${++nextId}`;
     const runner = createRepeatingRunner(() => play(async (lightId, state) => {
@@ -153,6 +156,7 @@ export function createAmbiancePlayback(onChange: (modes: AmbianceMode[]) => void
   };
   return {
     start, stop, stopAll, foreground,
+    getModes: async () => snapshot(),
     usesSequence: (id: string) => [...modes.values()].some(mode => mode.sequenceId === id),
     dispose: () => { disposed = true; void stopAll(); },
   };

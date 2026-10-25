@@ -88,7 +88,7 @@ function LightingApp() {
           {controller.connected && subpage && <Appbar.BackAction onPress={back} accessibilityLabel="Back" />}
           <Appbar.Content title={title} titleStyle={styles.headerTitle} />
           {screen === 'ambiance' && !!controller.ambianceModes.length && <Action mode="text"
-            disabled={controller.ambianceModes.every(mode => mode.stopping)} onPress={() => { void controller.stopAllAmbiance(); }}>Stop all</Action>}
+            disabled={controller.busy || controller.ambianceModes.every(mode => mode.stopping)} onPress={() => { void controller.stopAllAmbiance(); }}>Stop all</Action>}
           {screen === 'home' && <TouchableRipple onPress={openBridge} style={styles.connection} accessibilityRole="button" accessibilityLabel={`Bridge: ${controller.restoring ? 'checking' : controller.connected ? 'connected' : controller.credentials ? 'unreachable' : 'not paired'}`}>
             <View style={styles.connectionContent}><Icon source={controller.connected ? 'check-circle-outline' : 'lan-disconnect'} size={16} color={controller.connected ? palette.success : palette.muted} /><Text variant="labelMedium">{controller.restoring ? 'Checking' : controller.connected ? 'Bridge' : 'Connect'}</Text></View>
           </TouchableRipple>}
@@ -109,7 +109,7 @@ function LightingApp() {
           playbackRunning={controller.running} onLeavePreview={controller.leavePreview}
           ambianceSequenceIds={controller.ambianceModes.map(mode => mode.sequenceId)}
           onEditingChange={setEditorActive}
-          onSelectBuiltIn={id => { controller.setSelectedSequenceId(id); void go('home'); }}
+          onOpenAmbiance={() => { void go('ambiance'); }}
           onCreateGroup={() => { void go('group-editor'); }}
         /> : screen === 'lamps' ? content : <ScrollView ref={scroll} style={styles.scroll} contentContainerStyle={[styles.content, wide && styles.wideContent]} keyboardShouldPersistTaps="handled">{content}</ScrollView>}
         {controller.connected && !wide && !subpage && !editorActive && <BottomNavigation.Bar navigationState={{ index, routes: [...destinations] }}

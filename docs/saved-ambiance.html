@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Spooky Vibes - Saved Ambiance reference</title>
+<style>
+:root{color-scheme:dark;--bg:#121016;--surface:#1c1921;--raised:#26212d;--high:#332c3d;--primary:#d0bcff;--on-primary:#381e72;--accent:#ffcc80;--text:#ece6f0;--muted:#cac4d0;--outline:#938a9f;--error:#ffb4ab;--success:#b5dbb1}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 "Segoe UI",sans-serif}h1,h2,h3,p{margin:0}h1{font-size:32px;font-weight:450}h2{font-size:24px;font-weight:500}h3{font-size:20px;font-weight:550}p{color:var(--muted)}a{color:var(--primary)}button,input,select{font:inherit;color:inherit}button{min-height:48px;padding:10px 18px;border:0;border-radius:26px;background:var(--primary);color:var(--on-primary);cursor:pointer;font-weight:600}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:3px}.outline{border:1px solid var(--outline);background:transparent;color:var(--primary)}.text{background:transparent;color:var(--primary);padding-inline:10px}.danger{color:var(--error)}.board{max-width:850px;margin:auto;padding:32px 24px;display:grid;grid-template-columns:280px minmax(0,412px);gap:32px;align-items:start}.intro{display:grid;gap:18px}.eyebrow{font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:var(--accent)}.phone{width:100%;max-width:412px;height:844px;border:1px solid var(--high);border-radius:28px;overflow:hidden;display:flex;flex-direction:column}.statusbar{padding:12px 24px 4px;font-size:12px;display:flex;justify-content:space-between;color:var(--muted)}.appbar{padding:16px;display:flex;gap:8px;align-items:center;justify-content:space-between}.content{padding:0 16px 24px;overflow:auto;flex:1;min-height:0}.stack{display:grid;gap:16px}.card{padding:18px;background:var(--surface);border-radius:24px;display:grid;gap:14px}.row{display:flex;gap:10px;align-items:center}.wrap{flex-wrap:wrap}.between{justify-content:space-between}.grow{flex:1;min-width:0}.small{font-size:13px}.tag{border-radius:16px;padding:4px 10px;background:var(--raised);color:var(--muted);font-size:12px}.running{color:var(--success)}.effect{color:var(--accent);font-size:12px}.summary{padding-top:12px;border-top:1px solid var(--high);font-size:13px}.notice{padding:14px;background:var(--raised);border-radius:16px;font-size:13px;color:var(--muted)}label{display:grid;gap:6px;color:var(--muted);font-size:13px}input,select{width:100%;min-height:52px;border:1px solid var(--outline);border-radius:8px;background:var(--raised);padding:10px 12px}.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}input[type=range]{padding:0;accent-color:var(--primary)}input[type=color]{height:48px;width:56px;padding:4px}.footer{padding:12px 16px;border-top:1px solid var(--high);background:var(--surface)}.nav{display:flex;background:var(--surface);justify-content:space-around;padding:8px 4px}.nav button,.nav span{min-height:48px;font-size:11px;background:transparent;color:var(--muted);padding:8px 3px;min-width:0}.nav button.active{color:var(--primary);background:var(--high);border-radius:16px}.gesture{height:20px;background:var(--surface);display:grid;place-items:center}.gesture:after{content:"";height:4px;width:108px;border-radius:4px;background:var(--muted)}.full{width:100%}.orb{width:80px;height:80px;border-radius:50%;margin:12px auto;background:linear-gradient(140deg,var(--primary),var(--accent))}[hidden]{display:none!important}
+@media(max-width:700px){.board{display:block;padding:16px 8px}.intro{max-width:412px;margin:0 auto 20px;padding:0 8px}.intro .desktop{display:none}.phone{margin:auto}.intro h1{font-size:27px}}
+.color-wheel{width:min(228px,100%);aspect-ratio:1;border-radius:50%;margin:4px auto;background:radial-gradient(circle,#fff,transparent 70%),conic-gradient(red,#ff0,#0f0,cyan,blue,magenta,red);border:1px solid var(--outline)}.swatch{width:24px;height:24px;border-radius:50%;border:1px solid var(--outline);display:inline-block;flex-shrink:0}.color-preview{justify-content:center}.preset-menu{border:1px solid var(--outline);border-radius:24px}.preset-menu summary{cursor:pointer;min-height:48px;display:grid;place-items:center;color:var(--primary);font-weight:600}.preset-list{display:grid;gap:4px;padding:8px;background:var(--surface);border-radius:16px}.preset-list button{display:flex;align-items:center;gap:16px;border-radius:8px;background:transparent;color:var(--text);font-weight:400;text-align:left}.preset-list button:hover{background:var(--raised)}
+</style>
+</head>
+<body>
+<main class="board">
+<aside class="intro"><div class="eyebrow">Approved white-only controls / 2026-10-25</div><h1>Saved Ambiance</h1><p>Phone-first Midnight Studio reference. Supersedes the earlier <a href="ambiance.html">Ambiance proposal</a>.</p>
+<div class="notice">Approved flow: saved cards with Start/Stop, Edit and confirmed Delete. Creation saves a named effect, target, brightness limits, and RGB colors. Save does not start; Save &amp; start does.</div>
+<div class="notice">Approved addition: adjustable-white lamps get their own warm-to-cool setting, independent of RGB lamps. Storm has separate white-only lightning and glow settings. Keep current white is the default, preserving existing setups. The app reuses the Lights white-preset swatch menu alongside its slider and Keep current white action.</div>
+<div class="notice desktop">One shared white-only setting per saved mode, not per lamp. Fixed-white lamps keep their tone. Candlelight keeps plugs on; storm switches plugs off during every gap. Brightness limits remain shared.</div>
+<p class="small desktop">Modes persist on-device without automatically starting. Stop and Stop all never delete saved setups. Editing a running mode asks to stop first. The Android background service can reconnect to modes still running.</p>
+<p class="small">Interactive reference only. No bridge requests. Demo changes here reset on reload. Use the tabs below the phone to inspect Home and Ambiance, and Add ambiance for the form.</p>
+</aside>
+<section class="phone" aria-label="Android phone reference">
+<div class="statusbar" aria-hidden="true"><span>9:41</span><span>Wi-Fi &nbsp; 100%</span></div>
+<header class="appbar"><h2 id="title">Ambiance</h2><button class="text" id="stop-all">Stop all</button><button class="text" id="cancel" hidden>Cancel</button></header>
+<div class="content">
+<div id="ambiance" class="stack"><div id="cards" class="stack"></div><button id="add">+ Add ambiance</button></div>
+<div id="home" class="stack" hidden><p class="small">Your custom timelines</p><div class="card" style="text-align:center"><div class="orb" aria-hidden="true"></div><h3>Creepy hallway</h3><p>30 seconds &middot; 8 light actions &middot; audio</p></div><p style="text-align:center">1 / 2</p><button id="run">Run timeline (demo)</button><div class="card"><p class="small">Saved timeline group</p><strong>Hallway</strong></div><div class="notice">Candlelight and Halloween storm live in Ambiance now. If no timelines exist, Home offers Create a timeline.</div></div>
+<form id="editor" class="stack" hidden>
+<label>Ambiance name<input id="name" maxlength="60" required placeholder="e.g. Living room candles"></label>
+<label>Effect<select id="effect"><option value="candle">Candlelight</option><option value="storm">Halloween storm</option></select></label>
+<label>Group or lamp<select id="target"><option>Living room - RGB + adjustable white + plug</option><option>Porch - RGB + adjustable white</option><option>Sofa lamp - RGB</option></select></label>
+<section class="card"><h3 id="brightness-title">Flicker brightness</h3><div class="fields"><label>Minimum (%)<input id="minimum" type="number" min="1" max="100" value="8" required></label><label>Maximum (%)<input id="maximum" type="number" min="1" max="100" value="50" required></label></div></section>
+<section id="white-only" class="card">
+<h3>White-only lamps</h3>
+<div class="stack white-setting" id="white-main">
+<strong id="white-main-title">Candlelight white</strong>
+<label>White tone<select class="white-mode" aria-label="White-only main tone"></select></label>
+<label><span class="temperature-label">Keep current white</span><input class="white-temperature" aria-label="White-only main temperature" type="range" min="2000" max="6500" step="100" value="2200" disabled></label>
+<div class="row between small"><span>Warm</span><span>Cool</span></div>
+</div>
+<div class="stack white-setting" id="white-glow" hidden>
+<strong>Faint-glow white</strong>
+<label>White tone<select class="white-mode" aria-label="White-only glow tone"></select></label>
+<label><span class="temperature-label">Keep current white</span><input class="white-temperature" aria-label="White-only glow temperature" type="range" min="2000" max="6500" step="100" value="2200" disabled></label>
+<div class="row between small"><span>Warm</span><span>Cool</span></div>
+</div>
+</section>
+<section class="card color-setting"><h3>RGB lamp color</h3><div class="color-wheel" role="img" aria-label="Color wheel matching the Lights screen"></div><label>Hex color<div class="row color-preview"><span class="swatch" style="background:#ff9800"></span><input class="hex" value="#FF9800" aria-label="Hex color"></div></label><div class="menus stack"></div><p class="selection small">2200 K</p><label>White temperature<input type="range" min="2000" max="6500" step="100" value="2200"></label><button class="text keep" type="button">Keep current color</button></section>
+<section id="glow" class="card color-setting" hidden><h3>RGB faint-glow color</h3><div class="color-wheel" role="img" aria-label="Faint-glow color wheel"></div><label>Hex color<div class="row color-preview"><span class="swatch" style="background:#a56aff"></span><input class="hex" value="#A56AFF" aria-label="Glow hex color"></div></label><div class="menus stack"></div><p class="selection small">2200 K</p><label>White temperature<input type="range" min="2000" max="6500" step="100" value="2200"></label><button class="text keep" type="button">Keep current color</button></section>
+<p id="error" class="small danger" role="alert" hidden>Minimum must not exceed maximum.</p>
+</form>
+</div>
+<div class="footer" id="save-footer" hidden><div class="row wrap"><button class="outline grow" type="submit" form="editor" id="save">Save</button><button class="grow" type="submit" form="editor" id="save-start">Save &amp; start</button></div></div>
+<nav class="nav" aria-label="Reference views"><button id="nav-home">Home</button><button id="nav-ambiance" class="active">Ambiance</button><span>Lights</span><span>Groups</span><span>Sequences</span></nav><div class="gesture" aria-hidden="true"></div>
+</section>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let modes=[{name:'Living room candles',effect:'Candlelight',target:'Living room',range:'8-50%',running:true},{name:'Porch storm',effect:'Halloween storm',target:'Porch',range:'80-100%',running:false}],editing=null;
+function render(){ $('cards').replaceChildren();modes.forEach((mode,index)=>{
+ const card=document.createElement('article');card.className='card';
+ const row=document.createElement('div');row.className='row between wrap';
+ const title=document.createElement('h3');title.textContent=mode.name;
+ const state=document.createElement('span');state.className='tag'+(mode.running?' running':'');state.textContent=mode.running?'Running':'Stopped';row.append(title,state);
+ const detail=document.createElement('p');detail.className='small';detail.textContent=mode.effect+' / '+mode.target;
+ const range=document.createElement('p');range.className='summary';range.textContent=mode.range+' brightness';if(mode.whiteMain){range.textContent+=' / white-only: '+(mode.whiteMain==='keep'?'keep current':mode.whiteMain+' K');if(mode.effect==='Halloween storm')range.textContent+=' / glow: '+(mode.whiteGlow==='keep'?'keep current':mode.whiteGlow+' K');}
+ const actions=document.createElement('div');actions.className='row wrap';
+ for(const text of [mode.running?'Stop':'Start','Edit','Delete']){
+  const button=document.createElement('button');button.type='button';button.textContent=text;button.setAttribute('aria-label',text+' '+mode.name);button.className=text==='Delete'?'text danger':text==='Edit'?'text':'grow';
+  button.onclick=()=>{if(text==='Delete'){if(confirm('Delete '+mode.name+' and its saved setup?')){modes.splice(index,1);render();}}else if(text==='Edit'){if(!mode.running||confirm('Stop this mode before editing?')){mode.running=false;open(index);}}else{mode.running=!mode.running;render();}};actions.append(button);
+ }card.append(row,detail,range,actions);$('cards').append(card);
+});}
+function show(view){$('ambiance').hidden=view!=='ambiance';$('home').hidden=view!=='home';$('editor').hidden=true;$('save-footer').hidden=true;$('cancel').hidden=true;$('stop-all').hidden=view!=='ambiance';$('title').textContent=view==='home'?'Home':'Ambiance';$('nav-home').classList.toggle('active',view==='home');$('nav-ambiance').classList.toggle('active',view==='ambiance');render();}
+function open(index=null){editing=index;const mode=index===null?null:modes[index];$('name').value=mode?mode.name:'';$('target').selectedIndex=mode?.targetIndex??0;$('effect').value=mode?.effect==='Halloween storm'?'storm':'candle';effectChanged();setWhite($('white-main'),mode?.whiteMain??'keep');setWhite($('white-glow'),mode?.whiteGlow??'keep');targetChanged();$('title').textContent=index===null?'New ambiance':'Edit ambiance';$('ambiance').hidden=true;$('home').hidden=true;$('editor').hidden=false;$('save-footer').hidden=false;$('cancel').hidden=false;$('stop-all').hidden=true;document.querySelector('.content').scrollTop=0;}
+function effectChanged(){const storm=$('effect').value==='storm';$('minimum').value=storm?80:8;$('maximum').value=storm?100:50;$('brightness-title').textContent=storm?'Lightning brightness':'Flicker brightness';$('glow').hidden=!storm;$('white-main-title').textContent=storm?'Lightning white':'Candlelight white';$('white-glow').hidden=!storm;}
+function targetChanged(){$('white-only').hidden=$('target').selectedIndex===2;}
+$('target').onchange=targetChanged;
+$('effect').onchange=effectChanged;
+const colorPresets=[['Red','#ff0000'],['Orange','#ff9800'],['Yellow','#ffff00'],['Green','#00ff55'],['Cyan','#00ffff'],['Blue','#0000ff'],['Purple','#9400ff'],['Pink','#ff0088']];
+const whitePresets=[['Candle - 2200 K','#ff932c'],['Warm - 2700 K','#ffa757'],['Soft - 3000 K','#ffb16e'],['Neutral - 3500 K','#ffc18d'],['Cool - 4000 K','#ffcea6'],['Daylight - 5000 K','#ffe4ce']];
+function setWhite(section,value){
+ const mode=section.querySelector('.white-mode'),slider=section.querySelector('.white-temperature');
+ const keep=value==='keep';mode.value=keep?'keep':Array.from(mode.options).some(option=>option.value===String(value))?String(value):'custom';
+ slider.disabled=keep;if(!keep)slider.value=value;
+ section.querySelector('.temperature-label').textContent=keep?'Keep current white':slider.value+' K';
+ section.dataset.value=keep?'keep':slider.value;
+}
+document.querySelectorAll('.white-setting').forEach(section=>{
+ const mode=section.querySelector('.white-mode'),slider=section.querySelector('.white-temperature');
+ for(const [label,value] of [['Keep current white','keep'],...whitePresets.map(([name])=>[name,name.match(/\d+/)[0]]),['Custom temperature','custom']]){
+  const option=document.createElement('option');option.textContent=label;option.value=value;mode.append(option);
+ }
+ mode.onchange=()=>setWhite(section,mode.value==='custom'?slider.value:mode.value);
+ slider.oninput=()=>setWhite(section,slider.value);
+ setWhite(section,'keep');
+});
+document.querySelectorAll('.color-setting').forEach(card=>{
+ const select=(text,color)=>{card.querySelector('.selection').textContent=text;card.querySelector('.swatch').style.background=color;};
+ for(const [label,presets] of [['White presets',whitePresets],['Color presets',colorPresets]]){
+  const details=document.createElement('details');details.className='preset-menu';
+  const summary=document.createElement('summary');summary.textContent=label;
+  const list=document.createElement('div');list.className='preset-list';
+  for(const [name,color] of presets){const button=document.createElement('button');button.type='button';const swatch=document.createElement('span');swatch.className='swatch';swatch.style.background=color;swatch.setAttribute('aria-hidden','true');button.append(swatch,document.createTextNode(name));button.onclick=()=>{select(name,color);details.open=false;};list.append(button);}
+  details.append(summary,list);card.querySelector('.menus').append(details);
+ }
+ card.querySelector('.keep').onclick=()=>{card.querySelector('.selection').textContent='Keep current color';};
+ card.querySelector('.hex').onchange=event=>{const value=event.target.value.trim();if(/^#?[0-9a-f]{6}$/i.test(value)&&!/^#?0{6}$/.test(value))select(value,value.startsWith('#')?value:'#'+value);else card.querySelector('.selection').textContent='Enter a valid, non-black six-digit hex color.';};
+});
+$('editor').onsubmit=event=>{event.preventDefault();if(Number($('minimum').value)>Number($('maximum').value)){$('error').hidden=false;return;}$('error').hidden=true;const mode={name:$('name').value.trim(),effect:$('effect').value==='storm'?'Halloween storm':'Candlelight',target:['Living room','Porch','Sofa lamp'][$('target').selectedIndex],targetIndex:$('target').selectedIndex,whiteMain:$('white-only').hidden?undefined:$('white-main').dataset.value,whiteGlow:$('white-glow').dataset.value,range:$('minimum').value+'-'+$('maximum').value+'%',running:event.submitter.id==='save-start'};if(editing===null)modes.push(mode);else modes[editing]=mode;show('ambiance');};
+$('add').onclick=()=>open();$('cancel').onclick=()=>show('ambiance');$('nav-home').onclick=()=>show('home');$('nav-ambiance').onclick=()=>show('ambiance');$('stop-all').onclick=()=>{modes.forEach(mode=>mode.running=false);render();};$('run').onclick=()=>alert('Design only. No lights or audio.');render();
+</script>
+</body>
+</html>

@@ -7,3 +7,6 @@ dist/
 .env
 .env.*
 !.env.example
+/android/
+/modules/spooky-ambiance/android/build/
+/modules/spooky-ambiance/android/.gradle/

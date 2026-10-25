@@ -2,8 +2,6 @@ import { useEffect, useRef, useState, type ComponentRef } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Checkbox, Dialog, Divider, FAB, Icon, IconButton, List, Portal, Text } from 'react-native-paper';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
-import { builtInSequences, candlelight } from '../services/sequences';
-import { PlaybackTargetPicker } from './PlaybackTargetPicker';
 import { lightSections } from '../services/rooms';
 import { palette, radius, spacing } from '../theme';
 import type { HueLightGroup } from '../types/hue';
@@ -13,13 +11,12 @@ import { Action, Caption, EmptyState, Field, Panel, Sheet, ui } from './ui';
 type Props = { controller: LightingController };
 
 export function HomeScreen({ controller: c, onConnect, onEdit }: Props & { onConnect: () => void; onEdit: () => void }) {
-  const [choosingTarget, setChoosingTarget] = useState(false);
   const [pageWidth, setPageWidth] = useState(0);
   const [contentWidth, setContentWidth] = useState(0);
   const pager = useRef<ComponentRef<typeof ScrollView>>(null);
   const page = useRef(0);
   const measuredWidth = useRef(0);
-  const sequences = [...builtInSequences, ...c.timelines];
+  const sequences = c.timelines;
   const selectedIndex = Math.max(0, sequences.findIndex(sequence => sequence.id === c.selectedSequenceId));
   const locked = c.running || c.previewRunning || c.busy || c.restoring;
   const pagesReady = pageWidth > 0 && Math.abs(contentWidth - pageWidth * sequences.length) < 1;
@@ -30,12 +27,12 @@ export function HomeScreen({ controller: c, onConnect, onEdit }: Props & { onCon
       pager.current?.scrollTo({ x: selectedIndex * pageWidth, animated: false });
     }
   }, [selectedIndex, pageWidth, pagesReady]);
-  const target = c.selectedTimeline
-    ? c.timelineGroup?.name ?? 'Saved group unavailable'
-    : c.homeTarget.name;
+  const target = c.timelineGroup?.name ?? 'Saved group unavailable';
   const blocked = !c.credentials ? 'Connect your bridge to run a sequence.'
-    : c.selectedTimeline && c.targetMissing ? 'This timeline needs its saved group and every action lamp available. Edit it to continue.'
-      : c.targetMissing ? 'Choose an available group or lamp below.' : null;
+    : c.targetMissing ? 'This timeline needs its saved group and every action lamp available. Edit it to continue.' : null;
+  if (!sequences.length) return <EmptyState icon="creation-outline" title="No custom timelines"
+    description="Create a timeline in Sequences. Candlelight and Halloween storm are available in Ambiance."
+    action="Create a timeline" onPress={onEdit} />;
   return <View style={ui.stack}>
     <View onLayout={event => setPageWidth(event.nativeEvent.layout.width)}>
       <ScrollView ref={pager} horizontal pagingEnabled scrollEnabled={!locked} showsHorizontalScrollIndicator={false}
@@ -51,10 +48,10 @@ export function HomeScreen({ controller: c, onConnect, onEdit }: Props & { onCon
           aria-hidden={index !== selectedIndex} accessibilityElementsHidden={index !== selectedIndex} importantForAccessibility={index === selectedIndex ? 'auto' : 'no-hide-descendants'}>
           <Panel tonal style={styles.hero}>
             <View style={styles.orb} accessible={false}>
-              <Svg width={88} height={88} viewBox="0 0 112 112"><Defs><LinearGradient id={`atmosphere-${index}`} x1="0" y1="0" x2="1" y2="1"><Stop offset="0" stopColor={sequence.id === candlelight.id ? palette.accent : palette.primary} /><Stop offset="1" stopColor={sequence.id === candlelight.id ? palette.primary : palette.accent} /></LinearGradient></Defs><Circle cx="56" cy="56" r="44" fill={`url(#atmosphere-${index})`} /></Svg>
+              <Svg width={88} height={88} viewBox="0 0 112 112"><Defs><LinearGradient id={`atmosphere-${index}`} x1="0" y1="0" x2="1" y2="1"><Stop offset="0" stopColor={palette.primary} /><Stop offset="1" stopColor={palette.accent} /></LinearGradient></Defs><Circle cx="56" cy="56" r="44" fill={`url(#atmosphere-${index})`} /></Svg>
             </View>
             <Text variant="headlineMedium" accessibilityRole="header" style={styles.sequenceTitle}>{sequence.name}</Text>
-            <Caption>{'durationMs' in sequence ? `${sequence.durationMs / 1000}s · ${sequence.events.length} action${sequence.events.length === 1 ? '' : 's'}` : 'Continuous'}</Caption>
+            <Caption>{`${sequence.durationMs / 1000}s · ${sequence.events.length} action${sequence.events.length === 1 ? '' : 's'}`}</Caption>
           </Panel>
         </View>)}
       </ScrollView>
@@ -73,13 +70,8 @@ export function HomeScreen({ controller: c, onConnect, onEdit }: Props & { onCon
       </Action>}
     {c.credentials && blocked && <Caption>{blocked}</Caption>}
     {c.selectedTimeline && c.targetMissing && <Action mode="text" onPress={onEdit}>Edit sequence</Action>}
-    <List.Item accessibilityRole={c.selectedTimeline ? 'text' : 'button'} accessibilityLabel={`${c.selectedTimeline ? 'Timeline group' : 'Choose target'}, ${target}`} title={c.selectedTimeline ? 'Timeline group' : 'Choose a group or lamp'} description={target} right={props => <List.Icon {...props} icon={c.selectedTimeline ? 'lock-outline' : 'chevron-down'} />}
-      onPress={c.selectedTimeline ? undefined : () => setChoosingTarget(true)} disabled={locked} style={styles.listItem} />
-    <Sheet visible={choosingTarget} title="Choose playback target" onDismiss={() => setChoosingTarget(false)}>
-      {c.error && <Text accessibilityRole="alert" style={styles.error}>{c.error}</Text>}
-      <PlaybackTargetPicker controller={c} value={c.playbackTarget} disabled={locked}
-        onSelect={target => { void c.selectPlaybackTarget(target).then(ok => { if (ok) setChoosingTarget(false); }); }} />
-    </Sheet>
+    <List.Item accessibilityRole="text" accessibilityLabel={`Timeline group, ${target}`} title="Timeline group" description={target}
+      right={props => <List.Icon {...props} icon="lock-outline" />} style={styles.listItem} />
   </View>;
 }
 

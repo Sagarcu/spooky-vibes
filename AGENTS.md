@@ -4,8 +4,9 @@
 
 - These instructions apply to this repository, not to other projects.
 - Spooky Vibes is an app for managing Philips Hue lights with user-created sequences. See [README.md](README.md) for the project overview.
-- The repository contains an Expo/React Native app written in TypeScript, managed with npm. It uses the Hue v1 local API, device-local storage, and Node's test runner through `tsx`; there is no cloud backend.
+- The repository contains an Expo/React Native app written in TypeScript, managed with npm, plus a local Kotlin Expo module for Android background ambiance. It uses the Hue v1 local API, device-local storage, and Node's test runner through `tsx`; there is no cloud backend.
 - Use `npm run start` for development, `npm run typecheck` for TypeScript checks, and `npm test` for automated tests. Business logic and device access live under `src/services/`, persistence under `src/storage/`, and tests under `tests/`.
+- Android background playback lives under `modules/spooky-ambiance/android/` and requires a custom build (`npx expo run:android --device`), notification access and battery-optimization exemption. Expo Go does not include this service. Keep native changes in the local module, not the generated, ignored `android/` project.
 
 ## Working approach
 
@@ -47,4 +48,5 @@
 - Write or update unit tests for new or changed business logic, covering meaningful rules, edge cases, and failure paths. Mock device/network boundaries.
 - Do not add unit tests for every tiny change, trivial wiring, presentational components, or styling-only edits. For UI changes, use relevant existing checks and visual verification against the approved mockups instead.
 - Run the smallest relevant checks and report what was run, the results, and any validation limitations.
+- After generating the Android project, run native tests with `.\android\gradlew.bat -p .\android :spooky-ambiance:testDebugUnitTest`. Native changes also need an Android build and authorized physical-device validation of locked-phone/Doze behavior; TypeScript tests alone do not verify background playback.
 - Keep this file current when the stack, development commands, or project conventions are established.

@@ -1,24 +1,19 @@
-import { useEffect, useRef, useState, type ComponentRef } from 'react';
+import { useEffect, useState } from 'react';
 import Slider from '@react-native-community/slider';
 import { StyleSheet, View, useWindowDimensions } from 'react-native';
-import { Dialog, Icon, IconButton, Menu, Portal, Switch, Text, TouchableRipple } from 'react-native-paper';
-import { colors, nearestWhitePreset, whites } from '../services/light-presets';
-import { hsvHex } from '../services/color-wheel';
+import { Dialog, Icon, IconButton, Portal, Switch, Text, TouchableRipple } from 'react-native-paper';
+import { nearestWhitePreset, whites, whiteSwatches } from '../services/light-presets';
 import { palette, radius, spacing } from '../theme';
 import type { HueLight, LightState } from '../types/hue';
 import type { LightingController } from '../useLightingController';
 import { ColorWheel } from './ColorWheel';
+import { ColorPresetMenus } from './ColorPresetMenus';
 import { RoomLights } from './RoomLights';
 import { Action, Caption, EmptyState, Field, Panel, ui } from './ui';
 
 const kinds: Record<HueLight['kind'], string> = {
   color: 'Color lamp', 'tunable-white': 'Tunable white', dimmable: 'Dimmable lamp',
   'onoff-plug': 'Smart switch', 'dimmable-plug': 'Dimmable smart switch',
-};
-
-const whiteSwatches: Record<(typeof whites)[number][1], string> = {
-  2200: '#ff932c', 2700: '#ffa757', 3000: '#ffb16e',
-  3500: '#ffc18d', 4000: '#ffcea6', 5000: '#ffe4ce',
 };
 
 function Brightness({ light, disabled, onApply }: { light: HueLight; disabled: boolean; onApply: (state: LightState) => void }) {
@@ -56,42 +51,9 @@ function LampColorWheel({ light, disabled, onApply, onPickingColor }: {
 function LampPresetMenus({ light, disabled, onApply }: {
   light: HueLight; disabled: boolean; onApply: (state: LightState) => void;
 }) {
-  const [menu, setMenu] = useState<{ kind: 'white' | 'color'; anchor: { x: number; y: number } } | null>(null);
-  const whiteAnchor = useRef<ComponentRef<typeof View>>(null);
-  const colorAnchor = useRef<ComponentRef<typeof View>>(null);
-  const open = (kind: 'white' | 'color') => {
-    const anchor = kind === 'white' ? whiteAnchor : colorAnchor;
-    anchor.current?.measureInWindow((x, y, _width, height) => setMenu({ kind, anchor: { x, y: y + height } }));
-  };
-  const close = () => {
-    const anchor = menu?.kind === 'white' ? whiteAnchor : colorAnchor;
-    setMenu(null);
-    requestAnimationFrame(() => anchor.current?.focus());
-  };
-  const selectedTemperature = nearestWhitePreset(light.colorMode === 'ct' ? light.colorTemperature : undefined);
-  const select = (state: LightState) => {
-    close();
-    onApply({ on: true, brightness: light.brightness || 80, ...state });
-  };
-  return <View style={styles.presetButtons}>
-    {light.colorTemperatureCapable && <View ref={whiteAnchor} collapsable={false} tabIndex={-1}>
-      <Action mode="outlined" disabled={disabled} accessibilityLabel="White presets" accessibilityState={{ expanded: menu?.kind === 'white' }} onPress={() => open('white')}>White presets</Action>
-    </View>}
-    <View ref={colorAnchor} collapsable={false} tabIndex={-1}>
-      <Action mode="outlined" disabled={disabled} accessibilityLabel="RGB color presets" accessibilityState={{ expanded: menu?.kind === 'color' }} onPress={() => open('color')}>Color presets</Action>
-    </View>
-    {menu && <Menu visible onDismiss={close} anchor={menu.anchor}
-      overlayAccessibilityLabel={`Close ${menu.kind} presets`} contentStyle={styles.presetMenu}>
-      {menu.kind === 'white' ? whites.map(([name, temperature]) => <Menu.Item key={name} title={`${name} · ${temperature} K`}
-        accessibilityLabel={`${name}, ${temperature} kelvin`} disabled={disabled}
-        leadingIcon={() => <View style={[styles.menuSwatch, { backgroundColor: whiteSwatches[temperature] }]} />}
-        trailingIcon={selectedTemperature === temperature ? 'check' : undefined}
-        accessibilityState={{ selected: selectedTemperature === temperature }} onPress={() => select({ colorTemperature: temperature })} />)
-        : colors.map(([name, hue]) => <Menu.Item key={name} title={name} accessibilityLabel={`${name} color preset`} disabled={disabled}
-        leadingIcon={() => <View style={[styles.menuSwatch, { backgroundColor: hsvHex(hue / 65535 * 360, 100, 100) }]} />}
-        onPress={() => select({ hue, saturation: 254 })} />)}
-    </Menu>}
-  </View>;
+  return <ColorPresetMenus whiteCapable={light.colorTemperatureCapable} disabled={disabled}
+    colorTemperature={light.colorMode === 'ct' ? light.colorTemperature : undefined}
+    onSelect={state => onApply({ on: true, brightness: light.brightness || 80, ...state })} />;
 }
 
 export function LampsScreen({ controller: c, onConnect }: {
@@ -189,9 +151,6 @@ const styles = StyleSheet.create({
   selectedPreset: { borderColor: palette.primary },
   whiteSwatch: { width: 32, height: 32, borderRadius: 16, borderWidth: 1, borderColor: palette.outline },
   disabledPreset: { opacity: 0.5 },
-  presetButtons: { gap: spacing.sm },
-  presetMenu: { backgroundColor: palette.surface },
-  menuSwatch: { width: 24, height: 24, borderRadius: 12, borderWidth: 1, borderColor: palette.outline },
   slider: { minHeight: 48, width: '100%' },
   error: { color: palette.error },
 });
