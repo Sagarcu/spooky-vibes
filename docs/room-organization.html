@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Room organization - approved wireframes</title>
+<style>
+  :root { color-scheme: dark; --background: #121016; --surface: #1c1921; --high: #332c3d; --primary: #d0bcff; --text: #ece6f0; --muted: #cac4d0; }
+  * { box-sizing: border-box; }
+  body { margin: 0 auto; padding: 24px; max-width: 1200px; background: var(--background); color: var(--text); font: 16px/1.5 system-ui, sans-serif; }
+  h1 { font-size: 24px; } h2 { font-size: 20px; } h3 { font-size: 16px; margin: 16px 0 8px; }
+  .board { display: flex; flex-wrap: wrap; gap: 24px; align-items: start; }
+  .screen { width: 340px; max-width: 100%; padding: 20px; border: 1px solid var(--muted); border-radius: 24px; }
+  .lamp { background: var(--surface); padding: 16px; border-radius: 16px; margin: 8px 0; display: flex; gap: 12px; align-items: center; }
+  .lamp span:first-child { flex: 1; } .muted { color: var(--muted); font-size: 14px; }
+  .toolbar { text-align: right; color: var(--primary); } .drop { padding: 16px; border: 2px dashed var(--primary); border-radius: 8px; }
+  .topbar { display: flex; align-items: center; gap: 16px; } .topbar h2 { flex: 1; } .topbar .actions { color: var(--primary); white-space: nowrap; }
+  .lift { background: var(--high); border: 2px solid var(--primary); } .source { opacity: .35; } .wide { width: 100%; max-width: 900px; }
+  .wide .lamp { padding: 20px; }
+  .room-heading { color: var(--primary); border-bottom: 1px solid var(--high); padding-bottom: 8px; }
+</style>
+<h1>Room organization</h1>
+<p>Approved in session: one app-local room per lamp, long-press any lamp header to drag,
+  saved manual room and lamp order, and the same room sections in group creation.
+  No separate Organize mode. Existing Midnight Studio palette and lamp controls remain.</p>
+<div class="board">
+  <section class="screen">
+    <header class="topbar"><h2>Your lights</h2><span class="actions" aria-label="Add room; Refresh lights">+ &nbsp; &#8635;</span></header>
+    <h3>Unordered</h3><div class="lamp"><span>Desk lamp</span><span>... &nbsp; On</span></div>
+    <h3>Living room &nbsp; ...</h3>
+    <div class="lamp"><span>Sofa lamp</span><span>... &nbsp; On</span></div>
+    <div class="lamp"><span>TV backlight</span><span>... &nbsp; On</span></div>
+    <h3>Bedroom &nbsp; ...</h3><div class="lamp"><span>Bedside lamp</span><span>... &nbsp; Off</span></div>
+    <p class="muted">Normal phone layout. Tap for existing lamp controls; long-press to pick up.
+      On very narrow screens or with larger text, stack power and the lamp menu vertically to leave room for readable names.</p>
+  </section>
+  <section class="screen">
+    <h2>Your lights - dragging</h2>
+    <h3>Unordered</h3><div class="lamp source"><span>Desk lamp</span></div>
+    <h3>Living room &nbsp; ...</h3><div class="lamp"><span>Sofa lamp</span></div>
+    <div class="drop">Drop a light here</div>
+    <div class="lamp lift"><span>Desk lamp - lifted</span></div>
+    <h3>Office &nbsp; ...</h3><div class="lamp muted"><span>Empty room / drop target</span></div>
+    <p class="muted">Insertion feedback follows the pointer. Edges auto-scroll. Unordered remains a drop target even when empty.</p>
+  </section>
+  <section class="screen">
+    <header class="topbar"><span aria-label="Back">&larr;</span><h2>New group</h2><span class="actions">Save</span></header><div class="lamp">Group name: Downstairs</div>
+    <h3>Choose lights <span class="muted">2 selected</span></h3><h3 class="room-heading">Living room</h3>
+    <div class="lamp">[x] Sofa lamp</div><div class="lamp">[ ] TV backlight</div>
+    <h3 class="room-heading">Bedroom</h3><div class="lamp">[x] Bedside lamp</div>
+    <p class="muted">Back and Save stay fixed in the top bar while the list scrolls. Room sections do not restrict group membership. Unordered is absent when empty.</p>
+  </section>
+  <section class="screen wide">
+    <header class="topbar"><h2>Your lights - wide layout</h2><span class="actions" aria-label="Add room; Refresh lights">+ &nbsp; &#8635;</span></header>
+    <h3>Living room &nbsp; ...</h3>
+    <div class="lamp"><span>Sofa lamp</span><span>... &nbsp; On</span></div>
+    <div class="lamp"><span>TV backlight</span><span>... &nbsp; On</span></div>
+    <p class="muted">Same vertical sections and bounded content width, not separate room columns.</p>
+  </section>
+</div>
+<h2>Menus and edge cases</h2>
+<ul>
+  <li>Lamp menu: Move to room (including Unordered), Move lamp up/down. Alternatives to drag for keyboard and screen-reader users.</li>
+  <li>Room menu: Rename, Move room up/down, Delete with confirmation. Deletion unassigns its lamps; lighting groups remain unchanged.</li>
+  <li>Add/Rename: require a nonempty, case-insensitively unique room name; inline validation and visible save errors.</li>
+  <li>Keep empty rooms; hide empty Unordered except while dragging. Preserve unavailable lamps' assignments.</li>
+  <li>Persist before showing a successful move. Failed saves leave the previous arrangement intact and report the error.</li>
+  <li>Forget bridge removes local room organization along with groups and timelines. No Hue room or zone operations.</li>
+</ul>
+</html>

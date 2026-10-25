@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Group editing - approved layout</title>
+<style>
+  :root { color-scheme: dark; font: 16px system-ui, sans-serif; background: #121016; color: #ece6f0; }
+  * { box-sizing: border-box; }
+  body { max-width: 1280px; margin: auto; padding: 24px; }
+  h1 { font-size: 26px; margin: 0 0 8px; }
+  h2 { font-size: 18px; margin: 0 0 16px; }
+  p { line-height: 1.5; }
+  .intro { color: #cac4d0; margin: 0 0 28px; }
+  .board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; align-items: start; }
+  .phone { border: 1px solid #938a9f; border-radius: 28px; background: #121016; overflow: hidden; min-height: 560px; }
+  .toolbar { min-height: 80px; display: flex; align-items: center; gap: 8px; padding: 12px 16px; }
+  .toolbar strong { font-size: 22px; font-weight: 500; flex: 1; }
+  .content { padding: 8px 16px 24px; display: grid; gap: 16px; }
+  .card { border-radius: 24px; background: #1c1921; padding: 24px; }
+  .name { font-size: 23px; margin: 0 0 12px; overflow-wrap: anywhere; }
+  .card-header { display: flex; align-items: center; gap: 4px; margin-bottom: 12px; }
+  .card-header .name { flex: 1; min-width: 0; margin: 0; }
+  .card-header button { flex-shrink: 0; width: 48px; padding: 12px; display: grid; place-items: center; }
+  .card-header svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .lamps { color: #cac4d0; margin: 0; line-height: 1.6; overflow-wrap: anywhere; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; margin-top: 16px; }
+  button { font: inherit; font-weight: 600; border: 0; border-radius: 24px; min-height: 48px; min-width: 48px; padding: 0 16px; background: transparent; color: #d0bcff; cursor: pointer; }
+  button:focus-visible, input:focus-visible { outline: 2px solid #d0bcff; outline-offset: 2px; }
+  .edit { background: #332c3d; }
+  .delete { color: #ffb4ab; }
+  .add { justify-self: end; background: #332c3d; border-radius: 16px; }
+  .nav { margin-top: 36px; display: flex; justify-content: space-around; align-items: center; padding: 16px 8px; background: #26212d; color: #cac4d0; font-size: 13px; }
+  .nav .active { color: #d0bcff; background: #332c3d; padding: 8px 16px; border-radius: 20px; }
+  .field { border: 1px solid #938a9f; padding: 8px 16px 12px; border-radius: 8px; }
+  .field span { display: block; color: #d0bcff; font-size: 12px; margin-bottom: 4px; }
+  .field input { font: inherit; color: #ece6f0; background: transparent; border: 0; width: 100%; padding: 4px 0; }
+  .section { color: #d0bcff; border-bottom: 1px solid #332c3d; padding-bottom: 12px; margin: 8px 0 0; font-weight: 600; }
+  .choice { display: flex; align-items: center; gap: 16px; min-height: 52px; }
+  input[type=checkbox] { width: 20px; height: 20px; accent-color: #d0bcff; flex-shrink: 0; }
+  .hint { color: #cac4d0; font-size: 14px; margin: 0; line-height: 1.5; }
+  .dim { background: #121016; padding: 110px 16px 32px; }
+  .dialog { border-radius: 28px; background: #26212d; padding: 24px; }
+  .dialog h3 { font-size: 24px; font-weight: 500; margin: 0 0 16px; }
+  .dialog p { color: #cac4d0; }
+  .note { font-size: 14px; color: #cac4d0; margin-top: 24px; }
+  @media (max-width: 950px) { .board { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); } }
+  @media (max-width: 400px) { body { padding: 16px; } .card { padding: 20px; } }
+</style>
+<h1>Groups: visible lamps, Edit and Delete</h1>
+<p class="intro">Approved layout: icon-only Edit and Delete after each title, with lamp names underneath. Uses the existing Midnight Studio palette. These are mockups, not the running app.</p>
+<main class="board">
+  <section>
+    <h2>1. Groups overview</h2>
+    <div class="phone">
+      <header class="toolbar"><strong>Your groups</strong></header>
+      <div class="content">
+        <article class="card">
+          <div class="card-header">
+            <p class="name">Living room</p>
+            <button aria-label="Edit Living room"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5 4 4M4 20l4-1L20 7a2.8 2.8 0 0 0-4-4L4 15z"/></svg></button>
+            <button class="delete" aria-label="Delete Living room"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg></button>
+          </div>
+          <p class="lamps">Sofa lamp, Floor lamp, Ceiling lamp</p>
+        </article>
+        <article class="card">
+          <div class="card-header">
+            <p class="name">Upstairs</p>
+            <button aria-label="Edit Upstairs"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5 4 4M4 20l4-1L20 7a2.8 2.8 0 0 0-4-4L4 15z"/></svg></button>
+            <button class="delete" aria-label="Delete Upstairs"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/></svg></button>
+          </div>
+          <p class="lamps">Bedroom lamp, Hallway lamp</p>
+        </article>
+        <button class="add">+ New group</button>
+      </div>
+      <nav class="nav" aria-label="App navigation"><span>Home</span><span>Lights</span><span class="active">Groups</span><span>Sequences</span></nav>
+    </div>
+  </section>
+  <section>
+    <h2>2. Edit group</h2>
+    <div class="phone">
+      <header class="toolbar"><button aria-label="Back">&#8249;</button><strong>Edit group</strong><button>Save</button></header>
+      <div class="content">
+        <label class="field"><span>Group name</span><input value="Living room" aria-label="Group name"></label>
+        <div class="actions" style="margin:0"><strong>Choose lights</strong><span class="hint">3 selected</span></div>
+        <p class="section">Living room</p>
+        <div>
+          <label class="choice"><input type="checkbox" checked>Sofa lamp</label>
+          <label class="choice"><input type="checkbox" checked>Floor lamp</label>
+          <label class="choice"><input type="checkbox" checked>Ceiling lamp</label>
+        </div>
+        <p class="section">Hallway</p>
+        <label class="choice"><input type="checkbox">Hallway lamp</label>
+        <p class="hint">The existing room-organized picker opens with this group's lamps selected.</p>
+      </div>
+    </div>
+  </section>
+  <section>
+    <h2>3. Delete confirmation</h2>
+    <div class="phone dim">
+      <div class="dialog">
+        <h3>Delete group?</h3>
+        <p>Delete Living room? Your Hue lights are not deleted. Timelines using this group will need another group before playback.</p>
+        <div class="actions"><button>Cancel</button><button class="delete">Delete</button></div>
+      </div>
+    </div>
+  </section>
+</main>
+<p class="note">Edit and Delete are icon-only buttons directly after the title, with accessible labels and 48px touch targets. No settings button, target controls, badge, or lamp count on group cards. Lamp names always appear under the title and wrap as needed. Editing and deletion are disabled during playback. The editor scrolls on small screens; wide screens keep the existing app layout. Save updates the same group; Back leaves it unchanged. At least one lamp is required. Unavailable saved lamps remain selected unless explicitly removed.</p>
+</html>

@@ -28,7 +28,7 @@
 
 ## UI design
 
-- Material Design is the intended direction for a future UI update, not an already-established component system. Do not redesign the existing UI unless explicitly requested. Reuse the project's chosen Material components and theme once established; ask before choosing a UI library.
+- The UI uses React Native Paper with the approved Midnight Studio Material 3 theme in `src/theme.ts`. Reuse Paper components and shared helpers in `src/components/ui.tsx`. The approved visual reference is `docs/material-redesign.html`; its alternate palettes are exploration only. Do not redesign the existing UI unless explicitly requested; ask before choosing another UI library.
 - As part of the approved UI redesign, establish a shared theme with a user-approved color palette and reusable color, typography, and spacing tokens. All redesigned screens and components must use that theme rather than hard-coded alternatives; ask before changing the palette.
 - Prioritize phone-first design and accessibility: generous touch targets, readable text that supports scaling, sufficient contrast, screen-reader labels, and layouts that work on narrow screens. Preserve keyboard access and visible focus for keyboard users.
 - During spec creation for UI changes, show visual mockups of the affected screens before requesting approval. Include relevant interaction states and responsive layouts; a prose description alone is not a mockup.
