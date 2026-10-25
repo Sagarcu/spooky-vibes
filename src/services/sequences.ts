@@ -7,24 +7,15 @@ export type SequenceRunner = {
 
 type ApplyState = (lightIds: string[], state: LightState) => Promise<void>;
 
-export const hauntedPulse: LightingSequence = {
-  id: 'haunted-pulse',
-  name: 'Haunted Pulse',
-  lightIds: [],
-  steps: [
-    { id: 'orange', label: 'Pumpkin glow', durationMs: 1_000, state: { on: true, brightness: 75, hue: 6_500, saturation: 254 } },
-    { id: 'purple', label: 'Witching purple', durationMs: 1_000, state: { on: true, brightness: 55, hue: 50_000, saturation: 220 } },
-    { id: 'dim', label: 'Darkness', durationMs: 450, state: { on: true, brightness: 8, hue: 50_000, saturation: 180 } },
-  ],
-};
-
 export function createCandlelightStep(previousStep?: SequenceStep, random = Math.random): SequenceStep {
-  const previousBrightness = previousStep?.state.brightness ?? 25;
-  const brightness = Math.max(10, Math.min(40, previousBrightness + Math.floor(random() * 13) - 6));
+  const target = 8 + Math.floor(random() * 43);
+  const brightness = Math.max(8, Math.min(50, Math.round(target * 0.85 + (previousStep?.state.brightness ?? target) * 0.15)));
+  const durationMs = 600 + Math.floor(random() * 1401);
+  const transitionTimeDeciseconds = 2 + Math.floor(random() * Math.min(7, Math.floor(durationMs / 100) - 1));
   return {
     id: 'flicker', label: 'Candle flicker',
-    durationMs: 600,
-    state: { on: true, brightness, colorTemperature: 2200, transitionTimeDeciseconds: 5 },
+    durationMs,
+    state: { on: true, brightness, colorTemperature: 2200, transitionTimeDeciseconds },
   };
 }
 
@@ -35,6 +26,34 @@ export const candlelight: LightingSequence = {
   steps: [],
   nextStep: createCandlelightStep,
 };
+
+export function createHalloweenStormStep(previousStep?: SequenceStep, random = Math.random): SequenceStep {
+  if (previousStep?.id === 'storm-quiet') {
+    return {
+      id: 'storm-burst', label: 'Lightning',
+      durationMs: 1000 + Math.floor(random() * 2001),
+      state: { on: true, brightness: 80 + Math.floor(random() * 21), colorTemperature: 6500, transitionTimeDeciseconds: 0 },
+    };
+  }
+  const glow = random() >= 0.55;
+  return {
+    id: 'storm-quiet', label: glow ? 'Faint glow' : 'Darkness',
+    durationMs: 4000 + Math.floor(random() * 14001),
+    state: glow
+      ? { on: true, brightness: 1, colorTemperature: 2200, transitionTimeDeciseconds: 4 }
+      : { on: false, transitionTimeDeciseconds: 4 },
+  };
+}
+
+export const halloweenStorm: LightingSequence = {
+  id: 'halloween-storm',
+  name: 'Halloween storm',
+  lightIds: [],
+  steps: [],
+  nextStep: createHalloweenStormStep,
+};
+
+export const builtInSequences = [candlelight, halloweenStorm];
 
 export function createSequenceRunner(sequence: LightingSequence, applyState: ApplyState): SequenceRunner {
   let cancelled = false;
@@ -137,26 +156,27 @@ export function createTimelineRunner(sequence: TimelineSequence, apply: (lightId
     ].map(item => 'light' in item ? item : { atMs: item.atMs, light: undefined as TimelineEvent | undefined, audio: item }).sort((a, b) => a.atMs - b.atMs);
     const pending: Promise<void>[] = [];
     let failure: unknown;
-    for (let i = 0; i < events.length && !cancelled && !failure;) {
-      const atMs = events[i]!.atMs;
-      if (atMs >= sequence.durationMs) break;
-      await wait(Math.max(0, started + atMs - Date.now()));
-      if (cancelled || failure) break;
-      const batch: typeof events = [];
-      while (i < events.length && events[i]!.atMs === atMs) batch.push(events[i++]!);
-      for (const event of batch) {
-        if (event.audio) playAudio?.(event.audio);
-        if (event.light) pending.push(Promise.resolve().then(() => { if (!cancelled) return apply(event.light!.lightId, { ...event.light!.state, transitionTimeDeciseconds: event.light!.state.transitionTimeDeciseconds ?? 0 }); }).catch(error => {
-          failure ??= error;
-          if (timer !== undefined) clearTimeout(timer);
-          timer = undefined;
-          wake?.();
-          wake = undefined;
-        }));
+    try {
+      for (let i = 0; i < events.length && !cancelled && !failure;) {
+        const atMs = events[i]!.atMs;
+        if (atMs >= sequence.durationMs) break;
+        await wait(Math.max(0, started + atMs - Date.now()));
+        if (cancelled || failure) break;
+        const batch: typeof events = [];
+        while (i < events.length && events[i]!.atMs === atMs) batch.push(events[i++]!);
+        for (const event of batch) {
+          if (event.audio) playAudio?.(event.audio);
+          if (event.light) pending.push(Promise.resolve().then(() => { if (!cancelled) return apply(event.light!.lightId, { ...event.light!.state, transitionTimeDeciseconds: event.light!.state.transitionTimeDeciseconds ?? 0 }); }).catch(error => {
+            failure ??= error;
+            if (timer !== undefined) clearTimeout(timer);
+            timer = undefined;
+            wake?.();
+            wake = undefined;
+          }));
+        }
       }
-    }
-    if (!cancelled && !failure) await wait(Math.max(0, started + sequence.durationMs - Date.now()));
-    await Promise.all(pending);
+      if (!cancelled && !failure) await wait(Math.max(0, started + sequence.durationMs - Date.now()));
+    } finally { await Promise.all(pending); }
     if (!cancelled && failure) throw failure;
   })();
   return { done, cancel: () => {
@@ -167,4 +187,3 @@ export function createTimelineRunner(sequence: TimelineSequence, apply: (lightId
     wake = undefined;
   } };
 }
-

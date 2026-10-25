@@ -10,11 +10,21 @@ export function createLightGroup(name: string, lightIds: string[], id = `group-$
   return { id, name: normalizedName, lightIds: uniqueLightIds };
 }
 
+export function saveLightGroup(groups: HueLightGroup[], name: string, lightIds: string[], id?: string): HueLightGroup[] {
+  if (id !== undefined && !groups.some(group => group.id === id)) {
+    throw new Error('This group no longer exists. Return to Groups and choose another group.');
+  }
+  const saved = createLightGroup(name, lightIds, id);
+  if (groups.some(group => group.id !== saved.id && group.name.toLowerCase() === saved.name.toLowerCase())) {
+    throw new Error('A group with that name already exists. Choose a different name.');
+  }
+  return id === undefined ? [...groups, saved] : groups.map(group => group.id === id ? saved : group);
+}
+
 export function groupsForAvailableLights(groups: HueLightGroup[], availableLightIds: string[]): HueLightGroup[] {
   const available = new Set(availableLightIds);
   return groups
     .map((group) => ({ ...group, lightIds: group.lightIds.filter((id) => available.has(id)) }))
     .filter((group) => group.lightIds.length > 0);
 }
-
 

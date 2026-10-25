@@ -12,6 +12,25 @@ export function hsvHex(hue: number, saturation: number, brightness: number): str
   return `#${[r, g, b].map(channel => Math.round((channel + m) * 255).toString(16).padStart(2, '0')).join('')}`;
 }
 
+export function parseHexColor(input: string): { hue: number; saturation: number; brightness: number } | null {
+  const hex = input.trim().replace(/^#/, '');
+  if (!/^(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(hex)) return null;
+  const expanded = hex.length === 3 ? [...hex].map(character => character + character).join('') : hex;
+  const red = parseInt(expanded.slice(0, 2), 16) / 255;
+  const green = parseInt(expanded.slice(2, 4), 16) / 255;
+  const blue = parseInt(expanded.slice(4, 6), 16) / 255;
+  const maximum = Math.max(red, green, blue);
+  const minimum = Math.min(red, green, blue);
+  const difference = maximum - minimum;
+  const sector = difference === 0 ? 0 : maximum === red ? (green - blue) / difference
+    : maximum === green ? (blue - red) / difference + 2 : (red - green) / difference + 4;
+  return {
+    hue: (sector * 60 + 360) % 360,
+    saturation: maximum === 0 ? 0 : difference / maximum * 100,
+    brightness: maximum * 100,
+  };
+}
+
 export function wheelColorAt(x: number, y: number, currentHue: number) {
   const dx = x - WHEEL_SIZE / 2;
   const dy = y - WHEEL_SIZE / 2;

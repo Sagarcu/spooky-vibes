@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spooky Vibes - Ambiance proposal</title>
+<style>
+:root{color-scheme:dark;--bg:#121016;--surface:#1c1921;--raised:#26212d;--high:#332c3d;--primary:#d0bcff;--accent:#ffcc80;--text:#ece6f0;--muted:#cac4d0;--error:#ffb4ab;--success:#b5dbb1}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,sans-serif;padding:32px}h1,h2,h3,p{margin:0}h1{font-size:28px}h2{font-size:20px}h3{font-size:18px}p{color:var(--muted)}header>p{max-width:800px;margin-top:8px}.board{display:flex;gap:24px;flex-wrap:wrap;margin-top:28px;align-items:start}.example{width:360px;max-width:100%}.label{font-size:14px;color:var(--accent);margin-bottom:10px}.phone{border:1px solid var(--high);border-radius:24px;overflow:hidden;background:var(--bg);min-height:640px;display:flex;flex-direction:column}.top{padding:22px 20px;display:flex;justify-content:space-between;gap:12px;align-items:center}.content{padding:0 16px 20px;display:grid;gap:16px;flex:1;align-content:start}.card{padding:20px;border-radius:20px;background:var(--surface);display:grid;gap:12px}.row{display:flex;align-items:center;justify-content:space-between;gap:12px}.tag{font-size:12px;background:var(--high);color:var(--primary);padding:4px 10px;border-radius:20px;white-space:nowrap}.running{color:var(--success)}.waiting{color:var(--accent)}.small{font-size:14px}.button{display:inline-block;background:var(--primary);color:#381e72;border:0;border-radius:24px;padding:12px 20px;font:600 14px system-ui;min-height:48px;text-align:center}.outline{background:transparent;color:var(--primary);border:1px solid #938a9f}.text{background:none;color:var(--primary);padding:4px 12px}.nav{display:flex;background:var(--surface);padding:12px 4px;gap:0;justify-content:space-around}.nav span{font-size:11px;display:grid;justify-items:center;gap:6px;flex:1}.nav b{font-size:18px;font-weight:400;display:block;border-radius:24px;padding:2px 14px}.selected b{background:var(--high);color:var(--primary)}.selected{color:var(--primary)}.notice{padding:14px 16px;background:var(--raised);border-radius:12px;font-size:14px}.error{color:var(--error)}.center{text-align:center;padding:48px 4px 16px}.center h3{margin:16px 0 8px}.sheet{background:var(--surface);border-radius:24px 24px 0 0;padding:24px 20px;display:grid;gap:16px}.field{border:1px solid #938a9f;border-radius:8px;padding:12px;font-size:14px;display:grid;gap:6px}.field small{color:var(--primary)}.wide{width:100%;max-width:1150px}.desktop{display:flex;min-height:380px;border:1px solid var(--high);border-radius:24px;overflow:hidden;margin-top:10px}.rail{display:grid;gap:20px;align-content:start;background:var(--surface);padding:24px 16px;min-width:110px;text-align:center;font-size:13px}.workspace{flex:1;min-width:0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.note{max-width:1100px;margin-top:28px;font-size:14px}.muted{color:var(--muted)}
+@media(max-width:650px){body{padding:16px}.board{gap:32px}.example{width:100%;max-width:390px}.grid{grid-template-columns:1fr}.rail{min-width:82px;padding:24px 8px}.top{flex-wrap:wrap}}
+</style>
+</head>
+<body>
+<header><h1>Ambiance</h1><p>Approved visual reference, 2026-10-24, using the existing Midnight Studio palette. User-approved revisions: overlapping ambiance targets are allowed with a warning; storm gaps randomly alternate darkness and a barely visible glow. Ambiance runs across app screens while the app remains open, not as a locked-phone background service.</p></header>
+<div class="board">
+<section class="example"><div class="label">Phone - two modes running</div><div class="phone">
+<div class="top"><h2>Ambiance</h2><span class="button text">Stop all</span></div>
+<div class="content">
+<div class="card"><div class="row"><h3>Candlelight</h3><span class="tag running">Running</span></div><p>Living room &middot; 3 lamps</p><p class="small">Repeats until stopped</p><span class="button outline">Stop Candlelight</span></div>
+<div class="card"><div class="row"><h3>Halloween storm</h3><span class="tag running">Running</span></div><p>Porch &middot; 2 lamps</p><p class="small">Quiet gaps, unpredictable light bursts</p><span class="button outline">Stop Halloween storm</span></div>
+<span class="button">+ Add ambiance</span>
+</div>
+<div class="nav"><span><b>&#8962;</b>Home</span><span class="selected"><b>&#10022;</b>Ambiance</span><span><b>&#9788;</b>Lights</span><span><b>&#9638;</b>Groups</span><span><b>&#9776;</b>Sequences</span></div>
+</div></section>
+<section class="example"><div class="label">Phone - Home takes priority</div><div class="phone">
+<div class="top"><h2>Ambiance</h2><span class="button text">Stop all</span></div>
+<div class="content">
+<div class="notice">Home is controlling 1 lamp. Its ambiance resumes when Home playback ends.</div>
+<div class="card"><div class="row"><h3>Candlelight</h3><span class="tag waiting">2 of 3 active</span></div><p>Living room</p><p class="small">Sofa lamp &middot; Waiting for Home<br>Fireplace &middot; Running<br>Corner lamp &middot; Running</p><span class="button outline">Stop Candlelight</span></div>
+<div class="card"><div class="row"><h3>Halloween storm</h3><span class="tag running">Running</span></div><p>Porch &middot; 2 lamps</p><span class="button outline">Stop Halloween storm</span></div>
+<span class="button">+ Add ambiance</span>
+</div>
+<div class="nav"><span><b>&#8962;</b>Home</span><span class="selected"><b>&#10022;</b>Ambiance</span><span><b>&#9788;</b>Lights</span><span><b>&#9638;</b>Groups</span><span><b>&#9776;</b>Sequences</span></div>
+</div></section>
+<section class="example"><div class="label">Phone - add a sequence / overlap warning</div><div class="phone">
+<div class="top"><h2>Ambiance</h2></div>
+<div class="content"><p class="small">One ambiance running</p></div>
+<div class="sheet"><h2>Add ambiance</h2><div class="field"><small>Sequence</small><span>Candlelight &#9662;</span></div><p class="small">Choose Candlelight, Halloween storm, or a saved timeline. Timelines and their audio repeat from the start; their saved group is used.</p><div class="field"><small>Group or lamp</small><span>Living room &#9662;</span></div><div class="notice">Another ambiance uses these lamps. Both will send commands; overlapping effects may conflict.</div><span class="button">Start ambiance</span><span class="button text">Cancel</span></div>
+</div></section>
+<section class="example"><div class="label">Phone - empty state / connection failure</div><div class="phone">
+<div class="top"><h2>Ambiance</h2></div>
+<div class="content"><div class="center"><span style="font-size:48px;color:var(--accent)">&#10022;</span><h3>No ambiance running</h3><p>Choose a sequence and let it repeat.</p></div><span class="button">+ Add ambiance</span><div class="notice"><strong class="error">Failure example</strong><p class="small">Candlelight stopped: the bridge could not be reached. Check Wi-Fi and your bridge, then try again.</p><span class="button text">Dismiss</span></div></div>
+<div class="nav"><span><b>&#8962;</b>Home</span><span class="selected"><b>&#10022;</b>Ambiance</span><span><b>&#9788;</b>Lights</span><span><b>&#9638;</b>Groups</span><span><b>&#9776;</b>Sequences</span></div>
+</div></section>
+<section class="wide"><div class="label">Wide layout - existing navigation rail, two-column content</div><div class="desktop">
+<div class="rail"><strong>Spooky Vibes</strong><span>Home</span><strong class="selected">Ambiance</strong><span>Lights</span><span>Groups</span><span>Sequences</span></div>
+<div class="workspace"><div class="top"><h2>Ambiance</h2><div class="row"><span class="button text">Stop all</span><span class="button">+ Add ambiance</span></div></div><div class="content"><div class="grid">
+<div class="card"><div class="row"><h3>Candlelight</h3><span class="tag running">Running</span></div><p>Living room &middot; 3 lamps</p><span class="button outline">Stop Candlelight</span></div>
+<div class="card"><div class="row"><h3>Halloween storm</h3><span class="tag running">Running</span></div><p>Porch &middot; 2 lamps</p><span class="button outline">Stop Halloween storm</span></div>
+</div></div></div></div></section>
+</div>
+<p class="note">Approved rules: Home and editor previews temporarily own only the lamps they affect, including cleanup/restoration; other ambiance lamps keep running. Multiple ambiance instances may share lamps, with a visible warning rather than automatic blending. Stopping an ambiance leaves its last state. Starting is explicit; no automatic playback after an app restart. Errors are visible and a failed mode is not marked running. Candlelight gains larger brightness variation and irregular timing with no more than one step every 600 ms. Halloween storm is a light-only effect with quiet gaps and occasional seconds-long bursts, not rapid strobing; gaps randomly use off or 1% warm white. On/off-only switches stay off between bursts. Sequence and target fields open scrollable choices; unavailable targets or missing timeline lamps disable Start. Running timelines cannot be saved or deleted until stopped, to preserve their audio files.</p>
+</body>
+</html>
